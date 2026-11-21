@@ -1,0 +1,2750 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rocket Markets — Real-Time Prediction Exchange</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+          },
+          colors: {
+            ink: '#0A0A0A',
+            bento: '#F6F6F5',
+            hairline: '#E5E5E5',
+            obsidian: '#0A0A0A',
+            'obsidian-card': '#141414',
+            'obsidian-border': '#262626',
+            muted: '#666666',
+          },
+          letterSpacing: {
+            editorial: '-0.03em',
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :root {
+      --bg-canvas: #FFFFFF;
+      --bg-bento: #F6F6F5;
+      --border-hairline: #E5E5E5;
+      --text-primary: #0A0A0A;
+      --text-secondary: #666666;
+    }
+
+    html.dark {
+      --bg-canvas: #0A0A0A;
+      --bg-bento: #141414;
+      --border-hairline: #262626;
+      --text-primary: #FAFAFA;
+      --text-secondary: #A1A1AA;
+    }
+
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow-x: hidden;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    .tabular-nums { font-variant-numeric: tabular-nums; }
+
+    /* ElevenLabs-style frosted hairline navbar */
+    .editorial-nav {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid #E5E5E5;
+    }
+    html.dark .editorial-nav {
+      background: rgba(10, 10, 10, 0.86);
+      border-bottom: 1px solid #262626;
+    }
+
+    /* Signature Luminous Animated Gradient Orbs (ElevenLabs Vibe) */
+    @keyframes orb-drift {
+      0%, 100% { background-position: 0% 50%; transform: scale(1) rotate(0deg); }
+      50% { background-position: 100% 50%; transform: scale(1.03) rotate(4deg); }
+    }
+    @keyframes orb-breathe {
+      0%, 100% { transform: scale(1); filter: saturate(1.05); }
+      50% { transform: scale(1.04); filter: saturate(1.22); }
+    }
+
+    .orb-sphere {
+      position: relative;
+      border-radius: 9999px;
+      background-size: 200% 200%;
+      animation: orb-drift 10s ease-in-out infinite;
+      box-shadow:
+        inset -16px -18px 36px rgba(0, 0, 0, 0.22),
+        inset 14px 14px 32px rgba(255, 255, 255, 0.45);
+    }
+    .orb-sphere::after {
+      content: '';
+      position: absolute;
+      inset: 8%;
+      border-radius: 9999px;
+      background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 55%);
+      pointer-events: none;
+    }
+
+    /* Warm Sunset Orange / Coral (Signature ElevenLabs Center Orb) */
+    .orb-sunset {
+      background-image: radial-gradient(circle at 32% 30%, #FFE4B5 0%, #FB923C 32%, #EA580C 66%, #9A3412 100%);
+      box-shadow:
+        0 24px 56px -12px rgba(234, 88, 12, 0.38),
+        inset -14px -16px 32px rgba(124, 45, 18, 0.35),
+        inset 12px 12px 28px rgba(255, 237, 213, 0.55);
+    }
+    /* Iridescent Lavender / Periwinkle */
+    .orb-lavender {
+      background-image: radial-gradient(circle at 28% 28%, #FCE7F3 0%, #C4B5FD 34%, #818CF8 68%, #4F46E5 100%);
+      box-shadow:
+        0 24px 56px -12px rgba(129, 140, 248, 0.36),
+        inset -14px -16px 32px rgba(49, 46, 129, 0.3),
+        inset 12px 12px 28px rgba(255, 255, 255, 0.6);
+    }
+    /* Emerald / Teal Glow */
+    .orb-emerald {
+      background-image: radial-gradient(circle at 30% 28%, #CCFBF1 0%, #34D399 36%, #0D9488 70%, #115E59 100%);
+      box-shadow:
+        0 24px 56px -12px rgba(16, 185, 129, 0.34),
+        inset -14px -16px 32px rgba(17, 94, 89, 0.35),
+        inset 12px 12px 28px rgba(204, 251, 241, 0.55);
+    }
+    /* Warm Amber / Terracotta Mocha */
+    .orb-terracotta {
+      background-image: radial-gradient(circle at 30% 30%, #FDE68A 0%, #D97706 38%, #92400E 72%, #451A03 100%);
+      box-shadow:
+        0 24px 56px -12px rgba(217, 119, 6, 0.32),
+        inset -14px -16px 32px rgba(69, 26, 3, 0.4),
+        inset 12px 12px 28px rgba(254, 243, 199, 0.5);
+    }
+    /* Iridescent Rose / Pearl */
+    .orb-rose {
+      background-image: radial-gradient(circle at 30% 28%, #FFE4E6 0%, #FB7185 38%, #E11D48 72%, #881337 100%);
+      box-shadow:
+        0 24px 56px -12px rgba(225, 29, 72, 0.32),
+        inset -14px -16px 32px rgba(136, 19, 55, 0.35),
+        inset 12px 12px 28px rgba(255, 228, 230, 0.55);
+    }
+    /* Soft Silver / Offline Pearl */
+    .orb-silver {
+      background-image: radial-gradient(circle at 32% 30%, #FFFFFF 0%, #E5E5E5 45%, #A3A3A3 100%);
+      box-shadow: inset -6px -8px 16px rgba(0, 0, 0, 0.12), inset 6px 6px 14px rgba(255, 255, 255, 0.7);
+    }
+
+    .orb-active-stage {
+      animation: orb-breathe 5s ease-in-out infinite;
+    }
+
+    /* Editorial Bento Hover */
+    .market-card {
+      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .market-card:hover {
+      transform: translateY(-2px);
+      border-color: #0A0A0A;
+      box-shadow: 0 12px 30px -12px rgba(10, 10, 10, 0.12);
+    }
+    html.dark .market-card:hover {
+      border-color: #52525B;
+      box-shadow: 0 14px 34px -12px rgba(0, 0, 0, 0.65);
+    }
+
+    @keyframes pulse-live {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.35); opacity: 0.45; }
+    }
+    .live-dot { animation: pulse-live 1.6s ease-in-out infinite; }
+
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #D4D4D8; border-radius: 999px; }
+    html.dark ::-webkit-scrollbar-thumb { background: #27272A; }
+  </style>
+</head>
+<body class="antialiased selection:bg-ink selection:text-white dark:selection:bg-white dark:selection:text-ink min-h-screen flex flex-col">
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <!-- =========================================================================
+       TOP SLIM ANNOUNCEMENT PILL BAR (ElevenLabs Style)
+  ========================================================================== -->
+  <div class="w-full bg-white dark:bg-obsidian border-b border-hairline dark:border-obsidian-border py-2 px-4 flex items-center justify-center">
+    <button id="announcement-cta" type="button" class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-bento dark:bg-obsidian-card hover:bg-neutral-200/70 dark:hover:bg-neutral-800 border border-hairline dark:border-obsidian-border text-[11px] sm:text-xs font-medium text-ink dark:text-neutral-200 transition-colors">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 live-dot"></span>
+      <span>Rocket Markets Beta • Zero fees on Monad • Real-time resolution</span>
+      <span class="text-muted dark:text-neutral-400">→</span>
+    </button>
+  </div>
+
+  <!-- =========================================================================
+       LIVE ACTIVITY SLIDE-OVER DRAWER
+  ========================================================================== -->
+  <div id="live-feed-backdrop" class="fixed inset-0 z-40 hidden bg-black/30 dark:bg-black/65 backdrop-blur-xs transition-opacity"></div>
+  <aside id="live-feed-drawer" class="fixed top-0 right-0 z-50 h-full w-full max-w-md bg-white dark:bg-obsidian-card border-l border-hairline dark:border-obsidian-border shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
+    <div class="px-6 py-4 border-b border-hairline dark:border-obsidian-border flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 live-dot"></span>
+        <div>
+          <h3 class="font-semibold text-sm text-ink dark:text-white tracking-tight">Live Activity Feed</h3>
+          <p class="text-[11px] font-mono text-muted dark:text-neutral-400">Real-time Monad settlement stream</p>
+        </div>
+      </div>
+      <button id="close-live-feed" type="button" class="w-8 h-8 rounded-full bg-bento dark:bg-neutral-800 text-muted dark:text-neutral-300 hover:text-ink dark:hover:text-white flex items-center justify-center text-xs font-semibold transition-colors">✕</button>
+    </div>
+
+    <div class="px-6 py-2.5 bg-bento/70 dark:bg-obsidian border-b border-hairline dark:border-obsidian-border flex items-center justify-between text-[11px] font-mono text-muted dark:text-neutral-400">
+      <span>24h Executions: <strong class="text-ink dark:text-white">14,892</strong></span>
+      <span>Monad RPC: <strong class="text-emerald-600 dark:text-emerald-400">12ms</strong></span>
+    </div>
+
+    <div id="live-feed-list" class="flex-1 overflow-y-auto p-5 space-y-2.5">
+      <!-- Populated dynamically -->
+    </div>
+  </aside>
+
+  <!-- =========================================================================
+       HOW IT WORKS MODAL
+  ========================================================================== -->
+  <div id="how-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/45 dark:bg-black/75 backdrop-blur-sm p-4">
+    <div class="bg-white dark:bg-obsidian-card rounded-3xl max-w-lg w-full p-7 space-y-5 border border-hairline dark:border-obsidian-border shadow-2xl">
+      <div class="flex items-center justify-between border-b border-hairline dark:border-obsidian-border pb-4">
+        <div>
+          <h3 class="text-lg font-semibold text-ink dark:text-white tracking-editorial">How Rocket Markets works</h3>
+          <p class="text-xs text-muted dark:text-neutral-400 mt-0.5">Two ways to trade real-time internet events.</p>
+        </div>
+        <button id="close-how-modal" type="button" class="w-8 h-8 rounded-full bg-bento dark:bg-neutral-800 text-muted dark:text-neutral-300 hover:text-ink dark:hover:text-white flex items-center justify-center text-xs font-semibold">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs sm:text-sm text-muted dark:text-neutral-300 leading-relaxed">
+        <div class="p-4 rounded-2xl bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border">
+          <div class="font-semibold text-ink dark:text-white mb-1 flex items-center justify-between">
+            <span>1. UNTIL POST (Survivors)</span>
+            <span class="font-mono text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">YIELD / SEC</span>
+          </div>
+          <p>Earn continuous yield every second until the qualifying event triggers. Cash out anytime with a 10-second fair buffer, or configure an Auto Cash-Out multiplier.</p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border">
+          <div class="font-semibold text-ink dark:text-white mb-1 flex items-center justify-between">
+            <span>2. WHEN POST (Detonators)</span>
+            <span class="font-mono text-[10px] px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-700 dark:text-orange-400">10m / 30m / 60m</span>
+          </div>
+          <p>Choose a precision detonation window (<strong>10 Min</strong>, <strong>30 Min</strong>, or <strong>60 Min</strong>). Shorter windows unlock higher multipliers. If the event triggers before your countdown expires, you win instantly.</p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border">
+          <div class="font-semibold text-ink dark:text-white mb-1 flex items-center justify-between">
+            <span>3. 11-Tier Referral &amp; 10-Day Audit</span>
+            <span class="font-mono text-[10px] px-2 py-0.5 rounded-full bg-ink/10 dark:bg-white/10 text-ink dark:text-white">UP TO $10,000</span>
+          </div>
+          <p>Invite real traders to unlock 11 bonus milestones (1 → 1,000 Real Users). Every 10 days, pending unverified invites are pruned while qualified Real Users remain locked permanently.</p>
+        </div>
+      </div>
+
+      <button id="got-it-btn" type="button" class="w-full py-3 rounded-full bg-ink dark:bg-white text-white dark:text-ink font-semibold text-sm hover:opacity-90 transition-opacity">
+        Start exploring
+      </button>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       PRO EXCHANGE STICKY NAVBAR (ElevenLabs Editorial Cleanliness)
+  ========================================================================== -->
+  <header class="editorial-nav sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+      <!-- LEFT: Minimalist Wordmark + BETA pill -->
+      <div class="flex items-center gap-6 shrink-0">
+        <button id="nav-logo-btn" type="button" class="flex items-center gap-2 group focus:outline-none">
+          <span class="inline-flex items-center gap-0.5">
+            <span class="w-1.5 h-5 rounded-full bg-ink dark:bg-white transition-transform group-hover:scale-y-110"></span>
+            <span class="w-1.5 h-5 rounded-full bg-ink dark:bg-white transition-transform group-hover:scale-y-90"></span>
+          </span>
+          <span class="font-bold text-[15px] sm:text-base tracking-editorial text-ink dark:text-white">RocketMarkets</span>
+          <span class="px-2 py-0.5 rounded-full bg-bento dark:bg-obsidian-card border border-hairline dark:border-obsidian-border font-mono text-[9px] font-semibold uppercase tracking-wider text-muted dark:text-neutral-400">Beta</span>
+        </button>
+
+        <!-- CENTER NAV LINKS -->
+        <nav class="hidden lg:flex items-center gap-1">
+          <button id="nav-tab-markets" type="button" class="px-3.5 py-1.5 rounded-full text-[13px] font-medium bg-bento dark:bg-obsidian-card text-ink dark:text-white transition-colors">
+            Markets
+          </button>
+          <button id="nav-tab-leaderboard" type="button" class="px-3.5 py-1.5 rounded-full text-[13px] font-medium text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white transition-colors">
+            Leaderboard
+          </button>
+          <button id="nav-tab-livefeed" type="button" class="px-3.5 py-1.5 rounded-full text-[13px] font-medium text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white transition-colors flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 live-dot"></span>
+            <span>Live Feed</span>
+          </button>
+          <button id="open-how-modal" type="button" class="px-3.5 py-1.5 rounded-full text-[13px] font-medium text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white transition-colors">
+            How it works
+          </button>
+        </nav>
+      </div>
+
+      <!-- RIGHT UTILITY BAR -->
+      <div class="flex items-center gap-2 shrink-0">
+        <!-- Quick Search Trigger (⌘K / /) -->
+        <button id="nav-search-btn" type="button" class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-bento dark:bg-obsidian-card hover:bg-neutral-200/70 dark:hover:bg-neutral-800 border border-hairline dark:border-obsidian-border text-xs text-muted dark:text-neutral-400 transition-colors" title="Quick Search (⌘K or /)">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <span class="hidden xl:inline">Search</span>
+          <kbd class="px-1.5 py-0.5 rounded bg-white dark:bg-obsidian border border-hairline dark:border-obsidian-border font-mono text-[10px] text-muted dark:text-neutral-400">⌘K</kbd>
+        </button>
+
+        <!-- Network Status Pill -->
+        <div class="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-bento dark:bg-obsidian-card border border-hairline dark:border-obsidian-border text-[11px] font-mono text-muted dark:text-neutral-300" title="Monad RPC Connected">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 live-dot"></span>
+          <span>Monad • <strong class="text-ink dark:text-white">12ms</strong></span>
+        </div>
+
+        <!-- Notification Bell Dropdown -->
+        <div class="relative">
+          <button id="notif-bell-btn" type="button" class="relative w-9 h-9 rounded-full bg-white dark:bg-obsidian-card hover:bg-bento dark:hover:bg-neutral-800 border border-hairline dark:border-obsidian-border text-ink dark:text-neutral-200 flex items-center justify-center transition-colors" title="Notifications">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+            <span id="notif-unread-badge" class="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-orange-600 text-white font-mono text-[9px] font-bold flex items-center justify-center">3</span>
+          </button>
+
+          <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-white dark:bg-obsidian-card rounded-2xl border border-hairline dark:border-obsidian-border shadow-xl overflow-hidden z-50">
+            <div class="px-4 py-3 border-b border-hairline dark:border-obsidian-border flex items-center justify-between">
+              <span class="font-semibold text-xs text-ink dark:text-white">Alerts &amp; Updates</span>
+              <button id="notif-mark-read" type="button" class="text-[11px] font-medium text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white underline">Mark all read</button>
+            </div>
+            <div id="notif-list" class="divide-y divide-hairline dark:divide-obsidian-border max-h-72 overflow-y-auto text-xs"></div>
+          </div>
+        </div>
+
+        <!-- LIGHT / DARK THEME TOGGLE (DIRECTLY NEXT TO WALLET BUTTON) -->
+        <button id="theme-toggle-btn" type="button" class="w-9 h-9 rounded-full bg-white dark:bg-obsidian-card hover:bg-bento dark:hover:bg-neutral-800 border border-hairline dark:border-obsidian-border text-ink dark:text-amber-300 flex items-center justify-center transition-colors" title="Switch Light / Dark Mode" aria-label="Toggle Theme">
+          <svg id="icon-sun" class="hidden w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          <svg id="icon-moon" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </button>
+
+        <!-- WALLET PILL BUTTON (Live Balance + Solid Black/White Wallet Pill) -->
+        <button id="nav-wallet-btn" type="button" class="flex items-center gap-2 pl-3.5 pr-1 py-1 rounded-full bg-white dark:bg-obsidian-card hover:bg-bento dark:hover:bg-neutral-800 border border-hairline dark:border-obsidian-border transition-colors group">
+          <span class="wallet-balance-4 font-mono font-semibold text-xs sm:text-[13px] text-ink dark:text-white tabular-nums">$3.1274</span>
+          <span class="px-3.5 py-1.5 rounded-full bg-ink dark:bg-white text-white dark:text-ink font-medium text-xs group-hover:opacity-90 transition-opacity">
+            Wallet
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Quick Navigation Bar -->
+    <div class="lg:hidden border-t border-hairline dark:border-obsidian-border px-4 py-2 flex items-center gap-1.5 overflow-x-auto">
+      <button type="button" data-mob-nav="directory" class="mob-nav-btn px-3 py-1 rounded-full text-xs font-medium bg-ink dark:bg-white text-white dark:text-ink whitespace-nowrap">Markets</button>
+      <button type="button" data-mob-nav="leaderboard" class="mob-nav-btn px-3 py-1 rounded-full text-xs font-medium text-muted dark:text-neutral-400 whitespace-nowrap">Leaderboard</button>
+      <button id="mob-livefeed-btn" type="button" class="px-3 py-1 rounded-full text-xs font-medium text-muted dark:text-neutral-400 whitespace-nowrap flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 live-dot"></span>Live Feed</button>
+      <button id="mob-refer-btn" type="button" class="px-3 py-1 rounded-full text-xs font-medium text-muted dark:text-neutral-400 whitespace-nowrap">Referrals (11 Tiers)</button>
+      <button id="mob-how-btn" type="button" class="px-3 py-1 rounded-full text-xs font-medium text-muted dark:text-neutral-400 whitespace-nowrap">How it works</button>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       VIEW 1: MARKETS HOME (ElevenLabs Editorial Layout)
+  ========================================================================== -->
+  <main id="view-directory" class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-16 pb-20 space-y-20 flex-1">
+
+    <!-- 1A. ASYMMETRIC EDITORIAL HERO -->
+    <section class="grid lg:grid-cols-12 gap-8 lg:gap-12 items-end">
+      <div class="lg:col-span-7 space-y-6">
+        <h1 class="text-4xl sm:text-5xl lg:text-[56px] font-semibold text-ink dark:text-white tracking-editorial leading-[1.05]">
+          Real-time markets,<br />brought to life
+        </h1>
+        <div class="flex flex-wrap items-center gap-3">
+          <button id="hero-explore-btn" type="button" class="px-6 py-3 rounded-full bg-ink dark:bg-white text-white dark:text-ink text-sm font-medium hover:opacity-85 transition-opacity">
+            Explore Markets
+          </button>
+          <button id="hero-how-btn" type="button" class="px-6 py-3 rounded-full bg-white dark:bg-obsidian border border-hairline dark:border-obsidian-border hover:border-ink dark:hover:border-neutral-500 text-ink dark:text-white text-sm font-medium transition-colors">
+            How it works
+          </button>
+        </div>
+      </div>
+
+      <div class="lg:col-span-5 space-y-5">
+        <p class="text-sm sm:text-[15px] text-muted dark:text-neutral-400 leading-relaxed">
+          Earn yield every second until an event triggers—or detonate the pool with precision 10, 30, or 60-minute windows.
+        </p>
+        <!-- Clean 3-Stat Editorial Strip -->
+        <div class="grid grid-cols-3 divide-x divide-hairline dark:divide-obsidian-border pt-4 border-t border-hairline dark:border-obsidian-border">
+          <div class="pr-3">
+            <div class="font-mono text-base sm:text-lg font-semibold text-ink dark:text-white tabular-nums">9 Live</div>
+            <div class="text-[11px] text-muted dark:text-neutral-400 mt-0.5">Active Markets</div>
+          </div>
+          <div class="px-3">
+            <div class="font-mono text-base sm:text-lg font-semibold text-ink dark:text-white tabular-nums">$1,365.83</div>
+            <div class="text-[11px] text-muted dark:text-neutral-400 mt-0.5">24h Volume</div>
+          </div>
+          <div class="pl-3">
+            <div class="font-mono text-base sm:text-lg font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">x3.42/h</div>
+            <div class="text-[11px] text-muted dark:text-neutral-400 mt-0.5">Top Yield</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1B. SIGNATURE INTERACTIVE ORB STAGE (Inspired by ElevenLabs Hero Stage) -->
+    <section class="rounded-[28px] bg-bento dark:bg-obsidian-card border border-hairline dark:border-obsidian-border overflow-hidden">
+      <!-- Top Category Switcher Tabs -->
+      <div class="border-b border-hairline dark:border-obsidian-border bg-white/60 dark:bg-obsidian/40 px-4 sm:px-6 pt-3 flex items-center justify-center gap-2 sm:gap-8 overflow-x-auto">
+        <button type="button" data-orb-cat="Tweets" class="orb-cat-tab pb-3 px-2 text-xs sm:text-[13px] font-medium border-b-2 border-ink dark:border-white text-ink dark:text-white flex items-center gap-2 whitespace-nowrap transition-colors">
+          <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+          <span>Tweets</span>
+        </button>
+        <button type="button" data-orb-cat="GTA VI" class="orb-cat-tab pb-3 px-2 text-xs sm:text-[13px] font-medium border-b-2 border-transparent text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white flex items-center gap-2 whitespace-nowrap transition-colors">
+          <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+          <span>GTA VI</span>
+        </button>
+        <button type="button" data-orb-cat="Streamers" class="orb-cat-tab pb-3 px-2 text-xs sm:text-[13px] font-medium border-b-2 border-transparent text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white flex items-center gap-2 whitespace-nowrap transition-colors">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>Streamers</span>
+        </button>
+        <button type="button" data-orb-cat="Crypto & AI" class="orb-cat-tab pb-3 px-2 text-xs sm:text-[13px] font-medium border-b-2 border-transparent text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white flex items-center gap-2 whitespace-nowrap transition-colors">
+          <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+          <span>Crypto &amp; AI</span>
+        </button>
+      </div>
+
+      <!-- Center Orb Carousel Stage -->
+      <div class="px-6 py-10 sm:py-14 flex flex-col items-center justify-center relative">
+        <div id="orb-stage-row" class="flex items-center justify-center gap-6 sm:gap-12 md:gap-16 w-full max-w-4xl min-h-[210px] sm:min-h-[240px]">
+          <!-- Rendered dynamically by JS (flanking orbs + luminous center active orb) -->
+        </div>
+
+        <!-- Active Orb Market Details & Open CTA -->
+        <div class="mt-8 flex flex-col items-center text-center max-w-xl space-y-3">
+          <div class="flex items-center gap-3">
+            <button id="orb-prev-btn" type="button" class="w-8 h-8 rounded-full bg-white dark:bg-obsidian border border-hairline dark:border-obsidian-border text-muted hover:text-ink dark:hover:text-white flex items-center justify-center text-xs transition-colors" aria-label="Previous featured market">‹</button>
+            <h2 id="orb-active-title" class="text-base sm:text-lg font-semibold text-ink dark:text-white tracking-tight">
+              ELON MUSK POSTS ON X.COM
+            </h2>
+            <button id="orb-next-btn" type="button" class="w-8 h-8 rounded-full bg-white dark:bg-obsidian border border-hairline dark:border-obsidian-border text-muted hover:text-ink dark:hover:text-white flex items-center justify-center text-xs transition-colors" aria-label="Next featured market">›</button>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-center gap-3 text-xs font-mono text-muted dark:text-neutral-400">
+            <span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 live-dot"></span>
+              <span id="orb-active-timer" class="tabular-nums">Live 07h:40m</span>
+            </span>
+            <span>•</span>
+            <span>Yield <strong id="orb-active-yield" class="text-ink dark:text-white tabular-nums">x1.59/h</strong></span>
+            <span>•</span>
+            <span>Pool <strong id="orb-active-vol" class="text-ink dark:text-white tabular-nums">$120.07</strong></span>
+          </div>
+
+          <div class="pt-2">
+            <button id="orb-open-market-btn" type="button" class="px-6 py-2.5 rounded-full bg-ink dark:bg-white text-white dark:text-ink text-xs sm:text-sm font-medium hover:opacity-85 transition-opacity">
+              Open Market →
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1C. ALL 12 MARKETS DIRECTORY -->
+    <section id="markets-directory-section" class="space-y-6 scroll-mt-24">
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <h2 class="text-2xl sm:text-3xl font-semibold text-ink dark:text-white tracking-editorial">All Markets</h2>
+          <p class="text-xs sm:text-sm text-muted dark:text-neutral-400 mt-1">Click any live market to launch the real-time trading terminal.</p>
+        </div>
+      </div>
+
+      <!-- Minimalist Filter Bar -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-2">
+        <div id="category-tabs" class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0">
+          <!-- Rendered by JS -->
+        </div>
+
+        <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5">
+          <div class="relative flex-1 sm:w-64">
+            <svg class="w-3.5 h-3.5 text-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="directory-search-input" type="text" placeholder="Search markets..." class="w-full pl-9 pr-4 py-2 rounded-full bg-bento dark:bg-obsidian-card border border-hairline dark:border-obsidian-border text-xs text-ink dark:text-white placeholder:text-muted focus:outline-none focus:border-ink dark:focus:border-neutral-500 transition-colors" />
+          </div>
+
+          <button id="hide-offline-toggle" type="button" role="switch" aria-checked="false" class="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-full bg-white dark:bg-obsidian-card border border-hairline dark:border-obsidian-border text-xs font-medium text-ink dark:text-neutral-200 shrink-0 hover:bg-bento dark:hover:bg-neutral-800 transition-colors">
+            <span>Hide Offline</span>
+            <span id="toggle-track" class="w-8 h-4 rounded-full bg-neutral-300 dark:bg-neutral-700 p-0.5 flex items-center transition-colors">
+              <span id="toggle-knob" class="w-3 h-3 rounded-full bg-white shadow transition-transform"></span>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3-Column Editorial Grid -->
+      <div id="markets-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Populated dynamically -->
+      </div>
+    </section>
+
+    <!-- 1D. "FAIRNESS, BUILT IN" SECTION (Inspired by ElevenLabs' "Safety, built in" Geometric SVG Row) -->
+    <section class="space-y-6 pt-4">
+      <div class="flex items-center justify-between gap-4">
+        <h2 class="text-2xl sm:text-3xl font-semibold text-ink dark:text-white tracking-editorial">Fairness, built in</h2>
+        <button id="fairness-learn-btn" type="button" class="px-4 py-1.5 rounded-full bg-white dark:bg-obsidian border border-hairline dark:border-obsidian-border hover:border-ink dark:hover:border-neutral-500 text-xs font-medium text-ink dark:text-white transition-colors">
+          Learn more
+        </button>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-5">
+        <!-- Card 1: Sine Wave Parabola Wireframe -->
+        <div class="rounded-2xl bg-bento dark:bg-obsidian-card border border-hairline dark:border-obsidian-border p-6 flex flex-col justify-between gap-8">
+          <div class="h-36 flex items-center justify-center text-ink dark:text-neutral-300">
+            <svg class="w-40 h-28" viewBox="0 0 160 110" fill="none" stroke="currentColor" stroke-width="0.9">
+              <line x1="12" y1="55" x2="148" y2="55" stroke-dasharray="2 3" opacity="0.45" />
+              <ellipse cx="42" cy="55" rx="10" ry="28" />
+              <ellipse cx="118" cy="55" rx="14" ry="38" />
+              <path d="M 42 27 Q 80 105 118 17" />
+              <path d="M 42 83 Q 80 5 118 93" opacity="0.55" />
+              <circle cx="80" cy="55" r="2.5" fill="currentColor" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-sm font-semibold text-ink dark:text-white">10-Second Fair Delay</h3>
+            <p class="text-xs text-muted dark:text-neutral-400 mt-1.5 leading-relaxed">
+              Anti-frontrunning cash-out buffer protecting both Survivors and Detonators during live event resolution.
+            </p>
+          </div>
+        </div>
+
+        <!-- Card 2: Wireframe Cube -->
+        <div class="rounded-2xl bg-bento dark:bg-obsidian-card border border-hairline dark:border-obsidian-border p-6 flex flex-col justify-between gap-8">
+          <div class="h-36 flex items-center justify-center text-ink dark:text-neutral-300">
+            <svg class="w-36 h-28" viewBox="0 0 140 110" fill="none" stroke="currentColor" stroke-width="0.9">
+              <rect x="30" y="28" width="60" height="60" />
+              <rect x="48" y="14" width="60" height="60" opacity="0.65" />
+              <line x1="30" y1="28" x2="48" y2="14" />
+              <line x1="90" y1="28" x2="108" y2="14" />
+              <line x1="30" y1="88" x2="48" y2="74" />
+              <line x1="90" y1="88" x2="108" y2="74" />
+              <line x1="50" y1="28" x2="50" y2="88" opacity="0.4" />
+              <line x1="70" y1="28" x2="70" y2="88" opacity="0.4" />
+              <line x1="30" y1="48" x2="90" y2="48" opacity="0.4" />
+              <line x1="30" y1="68" x2="90" y2="68" opacity="0.4" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-sm font-semibold text-ink dark:text-white">On-Chain Settlement</h3>
+            <p class="text-xs text-muted dark:text-neutral-400 mt-1.5 leading-relaxed">
+              Instant, verifiable payouts settled directly on Monad with $0 protocol fee and deterministic pool accounting.
+            </p>
+          </div>
+        </div>
+
+        <!-- Card 3: Concentric Orbital Rings -->
+        <div class="rounded-2xl bg-bento dark:bg-obsidian-card border border-hairline dark:border-obsidian-border p-6 flex flex-col justify-between gap-8">
+          <div class="h-36 flex items-center justify-center text-ink dark:text-neutral-300">
+            <svg class="w-36 h-28" viewBox="0 0 140 110" fill="none" stroke="currentColor" stroke-width="0.9">
+              <circle cx="70" cy="55" r="42" />
+              <circle cx="66" cy="55" r="35" opacity="0.82" />
+              <circle cx="62" cy="55" r="28" opacity="0.68" />
+              <circle cx="58" cy="55" r="21" opacity="0.54" />
+              <circle cx="54" cy="55" r="14" opacity="0.42" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-sm font-semibold text-ink dark:text-white">Real-Time Oracle</h3>
+            <p class="text-xs text-muted dark:text-neutral-400 mt-1.5 leading-relaxed">
+              Sub-second X, Twitch, and YouTube event feeds with cryptographic timestamps for exact publication proofs.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- =========================================================================
+       VIEW 2: MARKET TRADING TERMINAL (UNTIL + WHEN 10m / 30m / 60m)
+  ========================================================================== -->
+  <section id="view-terminal" class="hidden max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 flex-1">
+    <!-- Top Terminal Bar -->
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <button id="back-to-markets" type="button" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-bento dark:bg-obsidian-card hover:bg-neutral-200/70 dark:hover:bg-neutral-800 border border-hairline dark:border-obsidian-border text-xs font-medium text-ink dark:text-white transition-colors">
+        <span>←</span>
+        <span>All Markets</span>
+      </button>
+
+      <div class="flex flex-wrap items-center gap-2 text-xs font-mono">
+        <span class="px-3.5 py-1.5 rounded-full bg-bento dark:bg-obsidian-card border border-hairline dark:border-obsidian-border text-muted dark:text-neutral-400">
+          Pool <strong id="term-pool-total" class="text-ink dark:text-white tabular-nums ml-1">$120.07</strong>
+        </span>
+        <span class="px-3.5 py-1.5 rounded-full bg-bento dark:bg-obsidian-card border border-hairline dark:border-obsidian-border text-emerald-600 dark:text-emerald-400 font-semibold">
+          Fee $0
+        </span>
+        <button id="sim-trigger-btn" type="button" class="px-4 py-1.5 rounded-full bg-white dark:bg-obsidian-card hover:bg-orange-50 dark:hover:bg-orange-500/10 border border-hairline dark:border-obsidian-border hover:border-orange-400 text-orange-600 dark:text-orange-400 font-mono text-xs font-semibold transition-colors flex items-center gap-1.5">
+          <span>⚡</span>
+          <span id="sim-trigger-label">Simulate Event Trigger</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main 12-Col Terminal Grid -->
+    <div class="grid lg:grid-cols-12 gap-6 items-start">
+      <!-- LEFT 7 COLS: Chart + Ratio + Info Tabs -->
+      <div class="lg:col-span-7 space-y-5">
+        <div class="bg-white dark:bg-obsidian-card rounded-3xl border border-hairline dark:border-obsidian-border p-5 sm:p-6 space-y-5 relative overflow-hidden">
+          <!-- Market Header -->
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div class="flex items-start gap-3.5">
+              <div id="term-orb" class="w-12 h-12 orb-sphere orb-sunset shrink-0"></div>
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border text-emerald-600 dark:text-emerald-400 font-mono text-[11px] font-semibold">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 live-dot"></span>
+                    <span id="term-timer" class="tabular-nums">Live 07h:40m</span>
+                  </span>
+                  <span id="term-cat-badge" class="px-2.5 py-0.5 rounded-full bg-bento dark:bg-obsidian text-muted dark:text-neutral-400 text-[11px] font-medium">Tweets</span>
+                  <span id="term-window-hud" class="hidden px-2.5 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-600 dark:text-orange-400 font-mono text-[11px] font-semibold">
+                    WHEN Window: 10m
+                  </span>
+                </div>
+                <h2 id="term-title" class="text-lg sm:text-2xl font-semibold text-ink dark:text-white tracking-editorial mt-1.5">
+                  ELON MUSK POSTS ON X.COM
+                </h2>
+              </div>
+            </div>
+
+            <div class="text-left sm:text-right">
+              <div class="text-[10px] font-mono uppercase tracking-wider text-muted dark:text-neutral-400">Live Yield Rate</div>
+              <div id="term-yield-big" class="font-mono text-3xl sm:text-4xl font-bold text-ink dark:text-white tracking-tight tabular-nums">
+                x1.59<span class="text-base text-emerald-600 dark:text-emerald-400 font-semibold">/h</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dual-Theme HTML5 Canvas Chart -->
+          <div class="relative w-full h-[270px] sm:h-[310px] rounded-2xl bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border overflow-hidden">
+            <canvas id="yield-canvas" class="w-full h-full block"></canvas>
+
+            <!-- Event Triggered Overlay -->
+            <div id="term-triggered-overlay" class="hidden absolute inset-0 bg-white/90 dark:bg-obsidian/90 backdrop-blur-sm flex-col items-center justify-center p-6 text-center z-10">
+              <span class="px-3 py-1 rounded-full bg-orange-500/15 text-orange-600 dark:text-orange-400 font-mono text-xs font-semibold uppercase tracking-wider mb-2">⚡ Event Triggered</span>
+              <h3 class="text-2xl font-semibold text-ink dark:text-white tracking-editorial">Market Resolved — Detonators Win</h3>
+              <p class="text-xs sm:text-sm text-muted dark:text-neutral-400 mt-1 max-w-md">Active WHEN positions within the window settled instantly. Unredeemed Survivor stakes transferred to Detonators.</p>
+              <button id="reset-round-btn" type="button" class="mt-5 px-5 py-2.5 rounded-full bg-ink dark:bg-white text-white dark:text-ink font-medium text-xs hover:opacity-90 transition-opacity">
+                Reset Live Round
+              </button>
+            </div>
+          </div>
+
+          <!-- Survivor vs Detonator Pool Split Bar -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <div class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span class="font-medium text-ink dark:text-white">Survivors</span>
+                <strong id="term-surv-amt" class="font-mono text-ink dark:text-white tabular-nums">$38.42</strong>
+                <span id="term-surv-pct" class="font-mono text-muted dark:text-neutral-400 tabular-nums">(32%)</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span id="term-det-pct" class="font-mono text-muted dark:text-neutral-400 tabular-nums">(68%)</span>
+                <strong id="term-det-amt" class="font-mono text-ink dark:text-white tabular-nums">$81.65</strong>
+                <span class="font-medium text-ink dark:text-white">Detonators</span>
+                <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+              </div>
+            </div>
+            <div class="h-2 w-full rounded-full bg-bento dark:bg-obsidian overflow-hidden flex">
+              <div id="term-surv-bar" class="h-full bg-emerald-500 transition-all duration-500" style="width: 32%"></div>
+              <div id="term-det-bar" class="h-full bg-orange-500 transition-all duration-500" style="width: 68%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lower Info Tabs: Rules | Holders | Live Trades -->
+        <div class="bg-white dark:bg-obsidian-card rounded-3xl border border-hairline dark:border-obsidian-border p-5 sm:p-6 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-hairline dark:border-obsidian-border pb-3">
+            <div class="inline-flex p-1 rounded-full bg-bento dark:bg-obsidian gap-1">
+              <button type="button" data-term-tab="rules" class="term-info-tab px-4 py-1.5 rounded-full text-xs font-medium bg-ink dark:bg-white text-white dark:text-ink transition-all">Rules</button>
+              <button type="button" data-term-tab="holders" class="term-info-tab px-4 py-1.5 rounded-full text-xs font-medium text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white transition-all">Holders</button>
+              <button type="button" data-term-tab="trades" class="term-info-tab px-4 py-1.5 rounded-full text-xs font-medium text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white transition-all">Live Trades</button>
+            </div>
+            <span id="term-oracle-src" class="text-[11px] font-mono text-muted dark:text-neutral-400">Oracle: x.com/elonmusk</span>
+          </div>
+
+          <div id="term-panel-rules" class="text-xs sm:text-sm text-muted dark:text-neutral-300 leading-relaxed space-y-2">
+            <p><strong class="text-ink dark:text-white">UNTIL POST (Survivors):</strong> Accrues continuous yield every second until the qualifying event occurs. Cash out anytime with a 10-second verification buffer.</p>
+            <p><strong class="text-ink dark:text-white">WHEN POST (Detonators — 10m / 30m / 60m):</strong> Pick your precision detonation window. If the event triggers before your timer expires, you win the locked multiplier payout immediately.</p>
+          </div>
+
+          <div id="term-panel-holders" class="hidden space-y-2 text-xs font-mono">
+            <div class="flex items-center justify-between p-3 rounded-xl bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border">
+              <span class="text-ink dark:text-neutral-200 font-medium">0x39C...77B <span class="text-orange-600 dark:text-orange-400 ml-1">WHEN 10m</span></span>
+              <span class="font-semibold text-ink dark:text-white tabular-nums">$42.00</span>
+            </div>
+            <div class="flex items-center justify-between p-3 rounded-xl bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border">
+              <span class="text-ink dark:text-neutral-200 font-medium">0x84A...21F <span class="text-emerald-600 dark:text-emerald-400 ml-1">UNTIL</span></span>
+              <span class="font-semibold text-ink dark:text-white tabular-nums">$28.50</span>
+            </div>
+            <div class="flex items-center justify-between p-3 rounded-xl bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border">
+              <span class="text-ink dark:text-neutral-200 font-medium">0x91D...04E <span class="text-orange-600 dark:text-orange-400 ml-1">WHEN 30m</span></span>
+              <span class="font-semibold text-ink dark:text-white tabular-nums">$19.20</span>
+            </div>
+          </div>
+
+          <div id="term-panel-trades" class="hidden space-y-2 text-xs font-mono">
+            <div id="term-trades-list" class="space-y-2"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT 5 COLS: PRO ORDER DOCK -->
+      <div class="lg:col-span-5 bg-white dark:bg-obsidian-card rounded-3xl border border-hairline dark:border-obsidian-border p-5 sm:p-6 space-y-5">
+        <!-- Dock Mode Switcher -->
+        <div class="grid grid-cols-2 p-1 rounded-full bg-bento dark:bg-obsidian gap-1">
+          <button id="dock-tab-open" type="button" class="py-2 rounded-full text-xs font-medium bg-ink dark:bg-white text-white dark:text-ink transition-all">
+            Open Position
+          </button>
+          <button id="dock-tab-live" type="button" class="py-2 rounded-full text-xs font-medium text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white transition-all flex items-center justify-center gap-1.5">
+            <span>Live Positions (<span id="dock-live-count">1</span>)</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 live-dot"></span>
+          </button>
+        </div>
+
+        <!-- PANEL A: OPEN POSITION -->
+        <div id="dock-panel-open" class="space-y-4">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-medium text-ink dark:text-white">Choose Side <span class="text-[10px] font-mono text-muted ml-1">(Space)</span></span>
+            <span class="text-muted dark:text-neutral-400">Balance: <strong class="wallet-balance-4 font-mono text-ink dark:text-white tabular-nums">$3.1274</strong></span>
+          </div>
+
+          <!-- UNTIL vs WHEN Side Selector -->
+          <div class="grid grid-cols-2 gap-2.5">
+            <button id="side-until-btn" type="button" class="p-3.5 rounded-2xl border-2 border-ink dark:border-white bg-bento dark:bg-obsidian text-left transition-all">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-ink dark:text-white">UNTIL POST</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              </div>
+              <div class="text-[11px] text-muted dark:text-neutral-400 mt-0.5">Survivor</div>
+              <div id="side-until-yield" class="text-xs font-mono font-semibold text-emerald-600 dark:text-emerald-400 mt-1 tabular-nums">x1.59/h</div>
+            </button>
+
+            <button id="side-when-btn" type="button" class="p-3.5 rounded-2xl border border-hairline dark:border-obsidian-border bg-white dark:bg-obsidian-card hover:border-ink dark:hover:border-neutral-500 text-left transition-all">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-ink dark:text-white">WHEN POST</span>
+                <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+              </div>
+              <div class="text-[11px] text-muted dark:text-neutral-400 mt-0.5">Detonator</div>
+              <div id="side-when-odds-preview" class="text-xs font-mono font-semibold text-orange-600 dark:text-orange-400 mt-1 tabular-nums">Up to x4.20</div>
+            </button>
+          </div>
+
+          <!-- UNTIL SPECIFIC: Auto Cash-Out Target -->
+          <div id="until-controls-box" class="rounded-2xl bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border p-3.5 space-y-2.5">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-medium text-ink dark:text-neutral-200">Auto Cash-Out Target</span>
+              <button id="auto-cashout-toggle" type="button" class="px-2.5 py-0.5 rounded-full bg-white dark:bg-obsidian-card border border-hairline dark:border-obsidian-border font-mono text-[11px] font-medium text-muted dark:text-neutral-300 transition-colors">Off</button>
+            </div>
+            <div id="auto-cashout-slider-wrap" class="hidden flex items-center gap-3 pt-1">
+              <input id="auto-cashout-slider" type="range" min="1.5" max="7.0" step="0.25" value="3.0" class="w-full accent-neutral-900 dark:accent-white" />
+              <span id="auto-cashout-val" class="font-mono text-xs font-semibold text-emerald-600 dark:text-emerald-400 shrink-0 tabular-nums">x3.00</span>
+            </div>
+          </div>
+
+          <!-- WHEN SPECIFIC: 10 Min / 30 Min / 60 Min Window Selector -->
+          <div id="when-controls-box" class="hidden rounded-2xl bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border p-3.5 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-ink dark:text-white">Detonation Window</span>
+              <span class="font-mono text-[10px] text-orange-600 dark:text-orange-400 font-medium">Shorter = Higher x</span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" data-when-min="10" class="when-min-btn p-2.5 rounded-xl border-2 border-ink dark:border-white bg-white dark:bg-obsidian-card text-center transition-all">
+                <div class="text-xs font-semibold text-ink dark:text-white">10 Min</div>
+                <div id="odds-10m" class="font-mono text-[11px] font-semibold text-orange-600 dark:text-orange-400 mt-0.5 tabular-nums">x4.20</div>
+              </button>
+              <button type="button" data-when-min="30" class="when-min-btn p-2.5 rounded-xl border border-hairline dark:border-obsidian-border bg-white/60 dark:bg-obsidian-card/60 text-center hover:border-ink dark:hover:border-neutral-500 transition-all">
+                <div class="text-xs font-semibold text-ink dark:text-neutral-200">30 Min</div>
+                <div id="odds-30m" class="font-mono text-[11px] font-medium text-muted dark:text-neutral-400 mt-0.5 tabular-nums">x2.45</div>
+              </button>
+              <button type="button" data-when-min="60" class="when-min-btn p-2.5 rounded-xl border border-hairline dark:border-obsidian-border bg-white/60 dark:bg-obsidian-card/60 text-center hover:border-ink dark:hover:border-neutral-500 transition-all">
+                <div class="text-xs font-semibold text-ink dark:text-neutral-200">60 Min</div>
+                <div id="odds-60m" class="font-mono text-[11px] font-medium text-muted dark:text-neutral-400 mt-0.5 tabular-nums">x1.65</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Dynamic Explanation -->
+          <div id="dock-side-note" class="text-xs text-muted dark:text-neutral-400 leading-relaxed px-1">
+            Earn continuous yield every second until the event triggers. Cash out anytime with a 10-second delay.
+          </div>
+
+          <!-- Amount Input ($1 - $50) + Presets ($1, $2, $5, $10) -->
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between rounded-2xl bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border focus-within:border-ink dark:focus-within:border-white px-4 py-3 transition-colors">
+              <span class="text-[11px] font-mono text-muted dark:text-neutral-400">STAKE ($1–$50)</span>
+              <div class="flex items-center font-mono font-bold text-2xl text-ink dark:text-white">
+                <span class="text-muted text-lg mr-0.5">$</span>
+                <input id="trade-amount-input" type="number" min="1" max="50" step="1" value="1" class="w-16 bg-transparent text-right focus:outline-none tabular-nums" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-4 gap-2">
+              <button type="button" data-amt="1" class="amt-preset py-2 rounded-full text-xs font-mono font-semibold bg-ink dark:bg-white text-white dark:text-ink transition-all">$1</button>
+              <button type="button" data-amt="2" class="amt-preset py-2 rounded-full text-xs font-mono font-medium bg-bento dark:bg-obsidian hover:bg-neutral-200 dark:hover:bg-neutral-800 text-ink dark:text-neutral-200 transition-all">$2</button>
+              <button type="button" data-amt="5" class="amt-preset py-2 rounded-full text-xs font-mono font-medium bg-bento dark:bg-obsidian hover:bg-neutral-200 dark:hover:bg-neutral-800 text-ink dark:text-neutral-200 transition-all">$5</button>
+              <button type="button" data-amt="10" class="amt-preset py-2 rounded-full text-xs font-mono font-medium bg-bento dark:bg-obsidian hover:bg-neutral-200 dark:hover:bg-neutral-800 text-ink dark:text-neutral-200 transition-all">$10</button>
+            </div>
+          </div>
+
+          <!-- Order Review -->
+          <div class="rounded-2xl bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border p-3.5 space-y-1.5 text-xs font-mono">
+            <div class="flex justify-between"><span class="text-muted dark:text-neutral-400">Order Size</span><span id="summary-size" class="font-semibold text-ink dark:text-white tabular-nums">$1.00</span></div>
+            <div class="flex justify-between"><span id="summary-rate-label" class="text-muted dark:text-neutral-400">Yield Rate</span><span id="summary-rate" class="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">x1.59/h</span></div>
+            <div class="flex justify-between"><span id="summary-payout-label" class="text-muted dark:text-neutral-400">Est. 1h Value</span><span id="summary-payout" class="font-semibold text-ink dark:text-white tabular-nums">$1.59</span></div>
+            <div class="flex justify-between"><span class="text-muted dark:text-neutral-400">Protocol Fee</span><span class="font-semibold text-emerald-600 dark:text-emerald-400">$0.00</span></div>
+          </div>
+
+          <!-- Primary Pill CTA -->
+          <button id="buy-position-btn" type="button" class="w-full py-3.5 rounded-full bg-ink dark:bg-white text-white dark:text-ink font-semibold text-sm hover:opacity-85 transition-opacity">
+            Open Position
+          </button>
+        </div>
+
+        <!-- PANEL B: LIVE POSITIONS -->
+        <div id="dock-panel-live" class="hidden space-y-4">
+          <div id="live-pos-card" class="rounded-2xl bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border p-5 text-center space-y-1.5">
+            <div id="live-pos-top-label" class="text-[11px] font-mono uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-semibold">Live Accruing Value</div>
+            <div id="live-counter-val" class="font-mono text-3xl sm:text-4xl font-bold text-ink dark:text-white tabular-nums">$1.142850</div>
+            <div id="live-pos-subtitle" class="text-xs font-mono text-muted dark:text-neutral-400">UNTIL Survivor • Stake $1.00</div>
+          </div>
+
+          <div class="rounded-2xl bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border p-4 space-y-2 text-xs font-mono">
+            <div class="flex justify-between"><span class="text-muted dark:text-neutral-400">Market</span><span id="live-pos-market" class="font-semibold text-ink dark:text-white truncate max-w-[180px]">ELON MUSK POSTS ON X.COM</span></div>
+            <div class="flex justify-between"><span class="text-muted dark:text-neutral-400">Position Type</span><span id="live-pos-side" class="font-semibold text-emerald-600 dark:text-emerald-400">UNTIL (Survivor)</span></div>
+            <div class="flex justify-between"><span id="live-pos-extra-label" class="text-muted dark:text-neutral-400">Cash-Out Buffer</span><span id="live-pos-extra-val" class="font-semibold text-ink dark:text-white">10 seconds</span></div>
+          </div>
+
+          <!-- 10-Second Cash-Out Countdown Bar -->
+          <div id="cashout-progress-wrap" class="hidden rounded-2xl bg-bento dark:bg-obsidian border border-orange-400/50 p-3.5 space-y-2">
+            <div class="flex justify-between text-xs font-mono font-semibold text-orange-600 dark:text-orange-400">
+              <span>Verifying cash-out...</span>
+              <span id="cashout-secs-label" class="tabular-nums">10.0s</span>
+            </div>
+            <div class="h-1.5 w-full rounded-full bg-hairline dark:bg-neutral-800 overflow-hidden">
+              <div id="cashout-bar-fill" class="h-full bg-orange-500 transition-all duration-100" style="width: 100%"></div>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <button id="cashout-now-btn" type="button" class="w-full py-3.5 rounded-full bg-ink dark:bg-white text-white dark:text-ink font-semibold text-sm hover:opacity-85 transition-opacity">
+              Cash Out Now
+            </button>
+            <div class="flex items-center justify-between text-xs font-mono text-muted dark:text-neutral-400">
+              <button id="live-prev-btn" type="button" class="px-3.5 py-1.5 rounded-full bg-bento dark:bg-obsidian hover:bg-neutral-200 dark:hover:bg-neutral-800 text-ink dark:text-white font-medium transition-colors">← Prev</button>
+              <span id="live-index-label" class="tabular-nums">Position 1 / 1</span>
+              <button id="live-next-btn" type="button" class="px-3.5 py-1.5 rounded-full bg-bento dark:bg-obsidian hover:bg-neutral-200 dark:hover:bg-neutral-800 text-ink dark:text-white font-medium transition-colors">Next →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       VIEW 3: WALLET & 11-TIER REFERRAL HUB
+  ========================================================================== -->
+  <section id="view-portfolio" class="hidden max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 flex-1">
+    <!-- Top Wallet Header & Sub-Tabs -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <button id="portfolio-back-btn" type="button" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-bento dark:bg-obsidian-card hover:bg-neutral-200/70 dark:hover:bg-neutral-800 border border-hairline dark:border-obsidian-border text-xs font-medium text-ink dark:text-white transition-colors">
+          <span>←</span>
+          <span>Markets</span>
+        </button>
+        <h1 class="text-2xl font-semibold text-ink dark:text-white tracking-editorial">Wallet &amp; Referrals</h1>
+      </div>
+
+      <div class="inline-flex p-1 rounded-full bg-bento dark:bg-obsidian-card border border-hairline dark:border-obsidian-border self-start sm:self-auto">
+        <button id="wallet-subtab-overview" type="button" class="px-4 py-1.5 rounded-full text-xs font-medium bg-ink dark:bg-white text-white dark:text-ink transition-all">
+          Overview &amp; History
+        </button>
+        <button id="wallet-subtab-referrals" type="button" class="px-4 py-1.5 rounded-full text-xs font-medium text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white transition-all flex items-center gap-1.5">
+          <span>Referrals (11 Tiers)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SUB-TAB A: OVERVIEW & HISTORY -->
+    <div id="wallet-panel-overview" class="space-y-6">
+      <div class="grid md:grid-cols-12 gap-5">
+        <div class="md:col-span-7 bg-bento dark:bg-obsidian-card rounded-3xl border border-hairline dark:border-obsidian-border p-6 flex flex-col justify-between gap-6">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+              <div class="w-12 h-12 orb-sphere orb-lavender shrink-0"></div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-mono font-semibold text-base text-ink dark:text-white">0x01b...4c09a</span>
+                  <button id="copy-wallet-btn" type="button" class="px-2.5 py-0.5 rounded-full bg-white dark:bg-obsidian border border-hairline dark:border-obsidian-border hover:border-ink text-muted dark:text-neutral-300 text-[11px] font-mono transition-colors">Copy</button>
+                </div>
+                <div class="text-xs text-muted dark:text-neutral-400 mt-0.5">Joined Oct 13, 2026 • Monad Mainnet</div>
+              </div>
+            </div>
+
+            <div class="text-left sm:text-right">
+              <div class="text-[11px] font-mono uppercase text-muted dark:text-neutral-400">Available Balance</div>
+              <div class="wallet-balance-4 font-mono text-2xl sm:text-3xl font-bold text-ink dark:text-white tabular-nums">$3.1274</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 pt-4 border-t border-hairline dark:border-obsidian-border">
+            <button id="demo-deposit-btn" type="button" class="py-3 rounded-full bg-ink dark:bg-white text-white dark:text-ink font-medium text-xs sm:text-sm hover:opacity-85 transition-opacity">
+              + $10 Demo Deposit
+            </button>
+            <button id="demo-withdraw-btn" type="button" class="py-3 rounded-full bg-white dark:bg-obsidian border border-hairline dark:border-obsidian-border hover:border-ink dark:hover:border-neutral-500 text-ink dark:text-white font-medium text-xs sm:text-sm transition-colors">
+              Withdraw
+            </button>
+          </div>
+        </div>
+
+        <div class="md:col-span-5 bg-white dark:bg-obsidian-card rounded-3xl border border-hairline dark:border-obsidian-border p-6 flex flex-col justify-between divide-y divide-hairline dark:divide-obsidian-border">
+          <div class="pb-3.5 flex items-center justify-between">
+            <span class="text-xs text-muted dark:text-neutral-400">Realized P&amp;L</span>
+            <span class="font-mono text-lg font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">+$18.42</span>
+          </div>
+          <div class="py-3.5 flex items-center justify-between">
+            <span class="text-xs text-muted dark:text-neutral-400">Total Volume</span>
+            <span class="font-mono text-lg font-semibold text-ink dark:text-white tabular-nums">$578.70</span>
+          </div>
+          <div class="pt-3.5 flex items-center justify-between">
+            <span class="text-xs text-muted dark:text-neutral-400">Biggest Hit</span>
+            <span class="font-mono text-lg font-semibold text-ink dark:text-white tabular-nums">x18.85</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filterable Positions History Table -->
+      <div class="space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <h2 class="text-lg font-semibold text-ink dark:text-white tracking-tight">Positions History</h2>
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="inline-flex p-1 rounded-full bg-bento dark:bg-obsidian-card border border-hairline dark:border-obsidian-border">
+              <button type="button" data-htab="active" class="hist-tab-btn px-3.5 py-1 rounded-full text-xs font-medium text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white transition-all">Active (<span id="hist-active-num">1</span>)</button>
+              <button type="button" data-htab="closed" class="hist-tab-btn px-3.5 py-1 rounded-full text-xs font-medium bg-ink dark:bg-white text-white dark:text-ink transition-all">Closed</button>
+            </div>
+            <select id="hist-side-filter" class="px-3.5 py-1.5 rounded-full bg-white dark:bg-obsidian-card border border-hairline dark:border-obsidian-border text-xs font-medium text-ink dark:text-neutral-200 focus:outline-none">
+              <option value="all">All Sides</option>
+              <option value="Survivor">UNTIL (Survivor)</option>
+              <option value="Detonator">WHEN (Detonator)</option>
+            </select>
+            <select id="hist-outcome-filter" class="px-3.5 py-1.5 rounded-full bg-white dark:bg-obsidian-card border border-hairline dark:border-obsidian-border text-xs font-medium text-ink dark:text-neutral-200 focus:outline-none">
+              <option value="all">All Outcomes</option>
+              <option value="Won">Won</option>
+              <option value="Lost">Lost</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-obsidian-card rounded-3xl border border-hairline dark:border-obsidian-border overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-hairline dark:border-obsidian-border bg-bento/60 dark:bg-obsidian text-[11px] font-mono uppercase text-muted dark:text-neutral-400">
+                  <th class="py-3.5 px-5">Status</th>
+                  <th class="py-3.5 px-5">Market</th>
+                  <th class="py-3.5 px-5">Side</th>
+                  <th class="py-3.5 px-5">Bet</th>
+                  <th class="py-3.5 px-5">Return</th>
+                  <th class="py-3.5 px-5 text-right">Payout</th>
+                </tr>
+              </thead>
+              <tbody id="portfolio-tbody" class="divide-y divide-hairline dark:divide-obsidian-border text-xs sm:text-sm"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUB-TAB B: REFERRALS (11 TIERS + 10-DAY RESET AUDIT) -->
+    <div id="wallet-panel-referrals" class="hidden space-y-6">
+      <!-- Top Row: Referral Link + 10-Day Cycle Reset Countdown -->
+      <div class="grid lg:grid-cols-12 gap-5">
+        <!-- Referral Link Card (7 cols) -->
+        <div class="lg:col-span-7 bg-bento dark:bg-obsidian-card rounded-3xl border border-hairline dark:border-obsidian-border p-6 flex flex-col justify-between gap-6 relative overflow-hidden">
+          <div class="flex items-start justify-between gap-4">
+            <div class="space-y-1.5">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-white dark:bg-obsidian border border-hairline dark:border-obsidian-border font-mono text-[10px] font-semibold uppercase text-muted dark:text-neutral-400">
+                11 Milestone Tiers • Up to $10,000
+              </span>
+              <h2 class="text-2xl font-semibold text-ink dark:text-white tracking-editorial">Invite Real Traders.</h2>
+              <p class="text-xs sm:text-sm text-muted dark:text-neutral-400 max-w-md">
+                Share your referral link and unlock progressive cash rewards directly credited to your Wallet balance.
+              </p>
+            </div>
+            <div class="hidden sm:block w-14 h-14 orb-sphere orb-sunset shrink-0"></div>
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-white dark:bg-obsidian p-1.5 rounded-full border border-hairline dark:border-obsidian-border">
+              <input id="ref-link-input" type="text" readonly value="https://rocketmarkets.app/r/0x01b4c09a" class="flex-1 bg-transparent px-4 py-1.5 font-mono text-xs text-ink dark:text-white focus:outline-none truncate" />
+              <button id="copy-ref-link-btn" type="button" class="px-5 py-2 rounded-full bg-ink dark:bg-white text-white dark:text-ink font-medium text-xs hover:opacity-85 transition-opacity shrink-0">
+                Copy Link
+              </button>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+              <div class="flex items-center gap-4 text-xs font-mono">
+                <span class="text-muted dark:text-neutral-400">Real Users (Kept): <strong id="ref-real-count-top" class="text-emerald-600 dark:text-emerald-400 text-sm">6</strong></span>
+                <span class="text-muted dark:text-neutral-400">Pending (At Risk): <strong id="ref-pending-count-top" class="text-orange-600 dark:text-orange-400 text-sm">4</strong></span>
+              </div>
+              <button id="sim-invite-btn" type="button" class="px-4 py-1.5 rounded-full bg-white dark:bg-obsidian border border-hairline dark:border-obsidian-border hover:border-ink dark:hover:border-neutral-500 text-xs font-medium text-ink dark:text-white transition-colors">
+                + Simulate New Invite
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 10-Day Cycle Reset Countdown Banner (5 cols) -->
+        <div class="lg:col-span-5 bg-white dark:bg-obsidian-card rounded-3xl border border-hairline dark:border-obsidian-border p-6 flex flex-col justify-between gap-4">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-[11px] font-semibold uppercase tracking-wider text-orange-600 dark:text-orange-400">10-Day Cycle Reset</span>
+              <span class="text-[11px] font-mono text-muted dark:text-neutral-400">Auto-Audit</span>
+            </div>
+
+            <div class="grid grid-cols-4 gap-2 text-center">
+              <div class="rounded-2xl bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border py-2.5">
+                <div id="cd-days" class="font-mono text-xl font-bold text-ink dark:text-white tabular-nums">06</div>
+                <div class="text-[10px] font-mono uppercase text-muted">Days</div>
+              </div>
+              <div class="rounded-2xl bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border py-2.5">
+                <div id="cd-hours" class="font-mono text-xl font-bold text-ink dark:text-white tabular-nums">14</div>
+                <div class="text-[10px] font-mono uppercase text-muted">Hours</div>
+              </div>
+              <div class="rounded-2xl bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border py-2.5">
+                <div id="cd-mins" class="font-mono text-xl font-bold text-ink dark:text-white tabular-nums">22</div>
+                <div class="text-[10px] font-mono uppercase text-muted">Mins</div>
+              </div>
+              <div class="rounded-2xl bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border py-2.5">
+                <div id="cd-secs" class="font-mono text-xl font-bold text-orange-600 dark:text-orange-400 tabular-nums">18</div>
+                <div class="text-[10px] font-mono uppercase text-muted">Secs</div>
+              </div>
+            </div>
+
+            <p class="text-xs text-muted dark:text-neutral-400 leading-relaxed">
+              Every 10 days, pending referrals that do <strong class="text-ink dark:text-white">not</strong> meet the Real User conditions are automatically pruned. Referrals that meet all conditions are <strong class="text-emerald-600 dark:text-emerald-400">permanently locked in and kept</strong>.
+            </p>
+          </div>
+
+          <button id="test-reset-audit-btn" type="button" class="w-full py-2.5 rounded-full bg-ink dark:bg-white text-white dark:text-ink font-medium text-xs hover:opacity-85 transition-opacity">
+            Test 10-Day Reset Audit
+          </button>
+        </div>
+      </div>
+
+      <!-- Real User Qualification Conditions Checklist (4 Criteria) -->
+      <div class="bg-white dark:bg-obsidian-card rounded-3xl border border-hairline dark:border-obsidian-border p-6 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 class="text-base font-semibold text-ink dark:text-white tracking-tight">Real User Qualification Conditions</h3>
+            <p class="text-xs text-muted dark:text-neutral-400 mt-0.5">An invited user must satisfy all 4 checks before the 10-day reset to be kept permanently.</p>
+          </div>
+          <span class="px-3 py-1 rounded-full bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">Anti-Sybil Verified</span>
+        </div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <div class="p-4 rounded-2xl bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border space-y-1">
+            <span class="font-mono text-[11px] text-muted dark:text-neutral-500">01</span>
+            <div class="text-xs font-semibold text-ink dark:text-white">Connected valid wallet</div>
+            <p class="text-[11px] text-muted dark:text-neutral-400">Signed on-chain wallet authentication on Monad.</p>
+          </div>
+          <div class="p-4 rounded-2xl bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border space-y-1">
+            <span class="font-mono text-[11px] text-muted dark:text-neutral-500">02</span>
+            <div class="text-xs font-semibold text-ink dark:text-white">Minimum $5 trading volume</div>
+            <p class="text-[11px] text-muted dark:text-neutral-400">Cumulative settled stakes of at least $5.00.</p>
+          </div>
+          <div class="p-4 rounded-2xl bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border space-y-1">
+            <span class="font-mono text-[11px] text-muted dark:text-neutral-500">03</span>
+            <div class="text-xs font-semibold text-ink dark:text-white">At least 3 completed positions</div>
+            <p class="text-[11px] text-muted dark:text-neutral-400">3+ resolved UNTIL or WHEN positions.</p>
+          </div>
+          <div class="p-4 rounded-2xl bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border space-y-1">
+            <span class="font-mono text-[11px] text-muted dark:text-neutral-500">04</span>
+            <div class="text-xs font-semibold text-ink dark:text-white">Unique device/IP verification</div>
+            <p class="text-[11px] text-muted dark:text-neutral-400">Distinct hardware fingerprint &amp; non-duplicate IP.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 11 BONUS MILESTONES PROGRESS TRACK & GRID -->
+      <div class="bg-white dark:bg-obsidian-card rounded-3xl border border-hairline dark:border-obsidian-border p-6 space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 class="text-base sm:text-lg font-semibold text-ink dark:text-white tracking-tight">11 Bonus Milestones</h3>
+            <p class="text-xs text-muted dark:text-neutral-400">Exact tiers: 1, 5, 10, 25, 50, 100, 200, 400, 600, 800, 1,000 Real Users.</p>
+          </div>
+          <div class="font-mono text-xs text-muted dark:text-neutral-400">
+            Next Milestone: <strong id="next-tier-label" class="text-ink dark:text-white">10 Real Users (6 / 10)</strong>
+          </div>
+        </div>
+
+        <div class="space-y-1.5">
+          <div class="h-2 w-full rounded-full bg-bento dark:bg-obsidian overflow-hidden">
+            <div id="tier-progress-bar" class="h-full bg-ink dark:bg-white transition-all duration-500" style="width: 18%"></div>
+          </div>
+          <div class="flex justify-between text-[10px] font-mono text-muted dark:text-neutral-500">
+            <span>1 Ref ($2)</span>
+            <span>50 Refs ($175)</span>
+            <span>1,000 Refs ($10,000)</span>
+          </div>
+        </div>
+
+        <div id="referral-tiers-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
+          <!-- Populated dynamically with all 11 exact milestones -->
+        </div>
+      </div>
+
+      <!-- REFERRED USERS TABLE -->
+      <div class="space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <h3 class="text-lg font-semibold text-ink dark:text-white tracking-tight">Referred Users</h3>
+          <div class="inline-flex p-1 rounded-full bg-bento dark:bg-obsidian-card border border-hairline dark:border-obsidian-border gap-1">
+            <button type="button" data-ref-filter="all" class="ref-filter-btn px-3.5 py-1 rounded-full text-xs font-medium bg-ink dark:bg-white text-white dark:text-ink transition-all">All (<span id="ref-cnt-all">10</span>)</button>
+            <button type="button" data-ref-filter="qualified" class="ref-filter-btn px-3.5 py-1 rounded-full text-xs font-medium text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white transition-all">Qualified (<span id="ref-cnt-qual">6</span>)</button>
+            <button type="button" data-ref-filter="pending" class="ref-filter-btn px-3.5 py-1 rounded-full text-xs font-medium text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white transition-all">Pending (<span id="ref-cnt-pend">4</span>)</button>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-obsidian-card rounded-3xl border border-hairline dark:border-obsidian-border overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-hairline dark:border-obsidian-border bg-bento/60 dark:bg-obsidian text-[11px] font-mono uppercase text-muted dark:text-neutral-400">
+                  <th class="py-3.5 px-5">Wallet</th>
+                  <th class="py-3.5 px-5">Joined</th>
+                  <th class="py-3.5 px-5">Volume ($5)</th>
+                  <th class="py-3.5 px-5">Positions (3+)</th>
+                  <th class="py-3.5 px-5 text-right">Status</th>
+                </tr>
+              </thead>
+              <tbody id="invited-users-tbody" class="divide-y divide-hairline dark:divide-obsidian-border text-xs sm:text-sm"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       VIEW 4: LEADERBOARD
+  ========================================================================== -->
+  <section id="view-leaderboard" class="hidden max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6 flex-1">
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div>
+        <span class="font-mono text-[11px] uppercase tracking-wider text-muted dark:text-neutral-400">Season 1 Rankings</span>
+        <h1 class="text-3xl font-semibold text-ink dark:text-white tracking-editorial mt-1">Leaderboard</h1>
+        <p class="text-sm text-muted dark:text-neutral-400 mt-1">Top performing prediction traders and verified referral ambassadors.</p>
+      </div>
+
+      <div class="inline-flex p-1 rounded-full bg-bento dark:bg-obsidian-card border border-hairline dark:border-obsidian-border self-start">
+        <button id="lb-tab-traders" type="button" class="px-4 py-1.5 rounded-full text-xs font-medium bg-ink dark:bg-white text-white dark:text-ink transition-all">Top Traders</button>
+        <button id="lb-tab-referrers" type="button" class="px-4 py-1.5 rounded-full text-xs font-medium text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white transition-all">Top Referrers</button>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-obsidian-card rounded-3xl border border-hairline dark:border-obsidian-border overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead id="lb-thead"></thead>
+          <tbody id="lb-tbody" class="divide-y divide-hairline dark:divide-obsidian-border text-xs sm:text-sm"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       MULTI-COLUMN EDITORIAL FOOTER (Inspired by ElevenLabs Big Footer)
+  ========================================================================== -->
+  <footer class="border-t border-hairline dark:border-obsidian-border bg-white dark:bg-obsidian mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+      <div class="grid grid-cols-2 md:grid-cols-6 gap-8">
+        <!-- Brand Column -->
+        <div class="col-span-2 space-y-3">
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-0.5">
+              <span class="w-1.5 h-5 rounded-full bg-ink dark:bg-white"></span>
+              <span class="w-1.5 h-5 rounded-full bg-ink dark:bg-white"></span>
+            </span>
+            <span class="font-bold text-base tracking-editorial text-ink dark:text-white">RocketMarkets</span>
+          </div>
+          <p class="text-xs text-muted dark:text-neutral-400 max-w-xs leading-relaxed">
+            Real-time prediction markets built on Monad. Continuous UNTIL yield and precision 10/30/60-minute WHEN detonation pools.
+          </p>
+          <div class="text-[11px] font-mono text-muted dark:text-neutral-500 pt-1">
+            © 2026 Rocket Markets. Zero protocol fees.
+          </div>
+        </div>
+
+        <!-- Column 1: Markets -->
+        <div class="space-y-2.5">
+          <div class="text-xs font-semibold text-ink dark:text-white">Markets</div>
+          <ul class="space-y-2 text-xs text-muted dark:text-neutral-400">
+            <li><button type="button" data-footer-cat="Tweets" class="footer-cat-link hover:text-ink dark:hover:text-white transition-colors">Tweets</button></li>
+            <li><button type="button" data-footer-cat="GTA VI" class="footer-cat-link hover:text-ink dark:hover:text-white transition-colors">GTA VI</button></li>
+            <li><button type="button" data-footer-cat="Streamers" class="footer-cat-link hover:text-ink dark:hover:text-white transition-colors">Streamers</button></li>
+            <li><button type="button" data-footer-cat="Crypto & AI" class="footer-cat-link hover:text-ink dark:hover:text-white transition-colors">Crypto &amp; AI</button></li>
+          </ul>
+        </div>
+
+        <!-- Column 2: Platform -->
+        <div class="space-y-2.5">
+          <div class="text-xs font-semibold text-ink dark:text-white">Platform</div>
+          <ul class="space-y-2 text-xs text-muted dark:text-neutral-400">
+            <li><button type="button" id="footer-lb-link" class="hover:text-ink dark:hover:text-white transition-colors">Leaderboard</button></li>
+            <li><button type="button" id="footer-feed-link" class="hover:text-ink dark:hover:text-white transition-colors">Live Feed</button></li>
+            <li><button type="button" id="footer-ref-link" class="hover:text-ink dark:hover:text-white transition-colors">Referral Program</button></li>
+            <li><button type="button" id="footer-how-link" class="hover:text-ink dark:hover:text-white transition-colors">How it works</button></li>
+          </ul>
+        </div>
+
+        <!-- Column 3: Resources -->
+        <div class="space-y-2.5">
+          <div class="text-xs font-semibold text-ink dark:text-white">Resources</div>
+          <ul class="space-y-2 text-xs text-muted dark:text-neutral-400">
+            <li><span class="cursor-default">Oracle Docs</span></li>
+            <li><span class="cursor-default">Monad Explorer</span></li>
+            <li><span class="cursor-default">10s Fair Delay</span></li>
+            <li><span class="cursor-default">Audit Reports</span></li>
+          </ul>
+        </div>
+
+        <!-- Column 4: Community -->
+        <div class="space-y-2.5">
+          <div class="text-xs font-semibold text-ink dark:text-white">Community</div>
+          <ul class="space-y-2 text-xs text-muted dark:text-neutral-400">
+            <li><span class="cursor-default">X (Twitter)</span></li>
+            <li><span class="cursor-default">Telegram</span></li>
+            <li><span class="cursor-default">Discord</span></li>
+            <li><span class="cursor-default">Status • 99.99%</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      /* ======================================================================
+         1. ALL 12 MARKETS DATA (9 LIVE + 3 OFFLINE)
+      ====================================================================== */
+      const marketsData = [
+        { id: 'elon-x', title: 'ELON MUSK POSTS ON X.COM', status: 'live', timer: '07h:40m', yieldRate: 1.59, volume: 120.07, categories: ['Tweets'], tagLabel: 'Tweets', badge: null, orbClass: 'orb-sunset', survPct: 32, oracle: 'x.com/elonmusk' },
+        { id: 'rockstar-x', title: 'ROCKSTAR GAMES POSTS ON X.COM', status: 'live', timer: '22h:51m', yieldRate: 1.07, volume: 33.04, categories: ['Tweets', 'GTA VI'], tagLabel: 'Tweets • GTA VI', badge: null, orbClass: 'orb-terracotta', survPct: 48, oracle: 'x.com/RockstarGames' },
+        { id: 'sam-gpt6', title: 'SAM ALTMAN POSTS ABOUT GPT-6', status: 'live', timer: '04h:12m', yieldRate: 2.14, volume: 89.50, categories: ['Tweets', 'Crypto & AI'], tagLabel: 'Tweets • AI', badge: 'NEW', orbClass: 'orb-emerald', survPct: 26, oracle: 'x.com/sama' },
+        { id: 'vitalik-x', title: 'VITALIK BUTERIN POSTS ON X.COM', status: 'live', timer: '11h:05m', yieldRate: 1.35, volume: 64.20, categories: ['Tweets', 'Crypto & AI'], tagLabel: 'Tweets • Crypto', badge: 'NEW', orbClass: 'orb-lavender', survPct: 41, oracle: 'x.com/VitalikButerin' },
+        { id: 'gtavi-trailer3', title: 'GTA VI TRAILER 3 DROPS ON YOUTUBE', status: 'live', timer: '19h:45m', yieldRate: 1.88, volume: 245.80, categories: ['GTA VI'], tagLabel: 'GTA VI', badge: 'HOT', orbClass: 'orb-rose', survPct: 35, oracle: 'youtube.com/@RockstarGames' },
+        { id: 'xqc-rage', title: 'XQC RAGE QUITS ON TWITCH STREAM', status: 'live', timer: '01h:24m', yieldRate: 3.42, volume: 158.40, categories: ['Streamers'], tagLabel: 'Streamers', badge: 'NEW', orbClass: 'orb-lavender', survPct: 19, oracle: 'twitch.tv/xqc' },
+        { id: 'mrbeast-vid', title: 'MRBEAST UPLOADS NEW VIDEO', status: 'live', timer: '14h:20m', yieldRate: 1.28, volume: 192.10, categories: ['Streamers'], tagLabel: 'Streamers', badge: null, orbClass: 'orb-emerald', survPct: 44, oracle: 'youtube.com/@MrBeast' },
+        { id: 'btc-150k', title: 'BITCOIN CROSSES $150K ON BINANCE', status: 'live', timer: '05h:18m', yieldRate: 2.65, volume: 310.50, categories: ['Crypto & AI'], tagLabel: 'Crypto & AI', badge: 'HOT', orbClass: 'orb-sunset', survPct: 28, oracle: 'binance.com/BTCUSDT' },
+        { id: 'monad-10k', title: 'MONAD TESTNET HITS 10K TPS PEAK', status: 'live', timer: '08h:05m', yieldRate: 1.92, volume: 152.22, categories: ['Crypto & AI'], tagLabel: 'Crypto & AI', badge: 'NEW', orbClass: 'orb-lavender', survPct: 37, oracle: 'monad.xyz/explorer' },
+        { id: 'kai-wasted', title: 'KAI CENAT WASTED IN GTA', status: 'offline', timer: '10h:52m', yieldRate: 1.00, volume: 16.88, categories: ['GTA VI', 'Streamers'], tagLabel: 'GTA VI • Streamers', badge: null, orbClass: 'orb-silver', survPct: 50, oracle: 'twitch.tv/kaicenat' },
+        { id: 'speed-wasted', title: 'ISHOWSPEED IS WASTED IN GTA', status: 'offline', timer: '23h:33m', yieldRate: 1.00, volume: 2.97, categories: ['GTA VI', 'Streamers'], tagLabel: 'GTA VI • Streamers', badge: null, orbClass: 'orb-silver', survPct: 50, oracle: 'youtube.com/@IShowSpeed' },
+        { id: 'adin-wasted', title: 'ADIN ROSS WASTED IN GTA', status: 'offline', timer: '06h:06m', yieldRate: 1.00, volume: 5.37, categories: ['GTA VI', 'Streamers'], tagLabel: 'GTA VI • Streamers', badge: null, orbClass: 'orb-silver', survPct: 50, oracle: 'kick.com/adinross' }
+      ];
+
+      /* ======================================================================
+         2. EXACT 11 REFERRAL BONUS MILESTONES
+            Tiers: 1, 5, 10, 25, 50, 100, 200, 400, 600, 800, 1000
+            Rewards: $2, $10, $25, $75, $175, $400, $900, $2,000, $3,500, $5,500, $10,000
+      ====================================================================== */
+      const referralTiers = [
+        { tier: 1, req: 1, bonus: 2, claimed: true },
+        { tier: 2, req: 5, bonus: 10, claimed: false },
+        { tier: 3, req: 10, bonus: 25, claimed: false },
+        { tier: 4, req: 25, bonus: 75, claimed: false },
+        { tier: 5, req: 50, bonus: 175, claimed: false },
+        { tier: 6, req: 100, bonus: 400, claimed: false },
+        { tier: 7, req: 200, bonus: 900, claimed: false },
+        { tier: 8, req: 400, bonus: 2000, claimed: false },
+        { tier: 9, req: 600, bonus: 3500, claimed: false },
+        { tier: 10, req: 800, bonus: 5500, claimed: false },
+        { tier: 11, req: 1000, bonus: 10000, claimed: false }
+      ];
+
+      /* ======================================================================
+         3. APPLICATION STATE
+      ====================================================================== */
+      const state = {
+        dark: false,
+        view: 'directory', // directory | terminal | portfolio | leaderboard
+        walletSubTab: 'overview',
+        orbCat: 'Tweets',
+        orbIndex: 0,
+        category: 'All',
+        search: '',
+        hideOffline: false,
+        notifiedIds: new Set(),
+        balance: 3.1274,
+
+        // Terminal State
+        activeMarket: marketsData[0],
+        termYield: 1.59,
+        termTriggered: false,
+        tradeSide: 'until', // until | when
+        whenWindowMins: 10, // 10 | 30 | 60
+        autoCashoutOn: false,
+        autoCashoutTarget: 3.0,
+        dockTab: 'open',
+        livePositions: [
+          {
+            id: 101,
+            marketId: 'elon-x',
+            marketTitle: 'ELON MUSK POSTS ON X.COM',
+            side: 'Survivor',
+            stake: 1.00,
+            currentVal: 1.142850,
+            yieldRate: 1.59,
+            whenWindowMins: null,
+            whenSecsLeft: 0,
+            lockedMult: null
+          }
+        ],
+        livePosIdx: 0,
+        cashoutTimer: null,
+
+        // Portfolio History
+        histTab: 'closed',
+        histSide: 'all',
+        histOutcome: 'all',
+        history: [
+          { status: 'active', outcome: 'Live', market: 'ELON MUSK POSTS ON X.COM', side: 'Survivor', bet: '$1.00', ret: 'x1.59/h', payout: '+$0.14', positive: true },
+          { status: 'closed', outcome: 'Won', market: 'BITCOIN CROSSES $150K ON BINANCE', side: 'Detonator', bet: '$5.00', ret: 'x4.20 (10m)', payout: '+$16.00', positive: true },
+          { status: 'closed', outcome: 'Won', market: 'XQC RAGE QUITS ON TWITCH STREAM', side: 'Survivor', bet: '$2.00', ret: 'x2.85', payout: '+$3.70', positive: true },
+          { status: 'closed', outcome: 'Lost', market: 'SAM ALTMAN POSTS ABOUT GPT-6', side: 'Detonator', bet: '$2.00', ret: 'x0.00 (30m)', payout: '-$2.00', positive: false }
+        ],
+
+        // Referrals State (6 Qualified Real Users + 4 Pending At Risk)
+        refFilter: 'all',
+        cycleSecsLeft: (6 * 86400) + (14 * 3600) + (22 * 60) + 18,
+        invitedUsers: [
+          { wallet: '0x71a...9e2b', joined: 'Nov 12, 2026', volume: 42, positions: 11, qualified: true },
+          { wallet: '0x44f...1c80', joined: 'Nov 13, 2026', volume: 28, positions: 7, qualified: true },
+          { wallet: '0x9b2...3a11', joined: 'Nov 14, 2026', volume: 15, positions: 5, qualified: true },
+          { wallet: '0x22c...7d04', joined: 'Nov 15, 2026', volume: 85, positions: 19, qualified: true },
+          { wallet: '0x8e1...5f33', joined: 'Nov 16, 2026', volume: 12, positions: 4, qualified: true },
+          { wallet: '0x63d...0b92', joined: 'Nov 17, 2026', volume: 8, positions: 3, qualified: true },
+          { wallet: '0x59e...2a01', joined: 'Nov 19, 2026', volume: 3, positions: 1, qualified: false },
+          { wallet: '0x3c8...6f77', joined: 'Nov 20, 2026', volume: 6, positions: 2, qualified: false },
+          { wallet: '0xa04...4d19', joined: 'Nov 21, 2026', volume: 0, positions: 0, qualified: false },
+          { wallet: '0xf12...9b65', joined: 'Nov 21, 2026', volume: 2, positions: 1, qualified: false }
+        ],
+
+        // Leaderboard & Notifications
+        lbTab: 'traders',
+        notifications: [
+          { id: 1, title: 'Tier 2 Unlocked (5 Real Users)', desc: 'Claim your $10.00 bonus inside Wallet → Referrals.', time: '2m ago', unread: true },
+          { id: 2, title: 'xQc Rage Quit surging', desc: 'Yield rate reached x3.42/h — highest live rate.', time: '14m ago', unread: true },
+          { id: 3, title: '10-Day Audit in 6 days', desc: '4 pending referrals need $5 vol & 3+ positions to be kept.', time: '1h ago', unread: true }
+        ]
+      };
+
+      /* ======================================================================
+         4. THEME TOGGLE (LIGHT DEFAULT + DARK MODE)
+      ====================================================================== */
+      const htmlEl = document.documentElement;
+      const iconSun = document.getElementById('icon-sun');
+      const iconMoon = document.getElementById('icon-moon');
+
+      function applyTheme(isDark) {
+        state.dark = isDark;
+        htmlEl.classList.toggle('dark', isDark);
+        iconSun.classList.toggle('hidden', !isDark);
+        iconMoon.classList.toggle('hidden', isDark);
+      }
+
+      document.getElementById('theme-toggle-btn').addEventListener('click', () => {
+        applyTheme(!state.dark);
+        showToast(`Switched to ${state.dark ? 'Dark' : 'Light'} mode.`);
+      });
+
+      /* ======================================================================
+         5. TOASTS, BALANCE & CLIPBOARD HELPERS
+      ====================================================================== */
+      function showToast(msg, tone = 'info') {
+        const container = document.getElementById('toast-container');
+        const el = document.createElement('div');
+        const dot = tone === 'success' ? 'bg-emerald-500' : tone === 'error' ? 'bg-orange-500' : 'bg-ink dark:bg-white';
+        el.className = 'pointer-events-auto bg-white dark:bg-obsidian-card border border-hairline dark:border-obsidian-border text-ink dark:text-white rounded-2xl px-4 py-3 text-xs font-medium shadow-xl flex items-center gap-2.5 transition-all';
+        el.innerHTML = `<span class="w-2 h-2 rounded-full ${dot} shrink-0"></span><span>${msg}</span>`;
+        container.appendChild(el);
+        setTimeout(() => {
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(6px)';
+          setTimeout(() => el.remove(), 220);
+        }, 3200);
+      }
+
+      function copyText(text, successMsg) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); } catch (e) {}
+        document.body.removeChild(ta);
+        showToast(successMsg, 'success');
+      }
+
+      function syncBalances() {
+        document.querySelectorAll('.wallet-balance-4').forEach(el => {
+          el.textContent = `$${state.balance.toFixed(4)}`;
+        });
+      }
+
+      /* ======================================================================
+         6. NAVIGATION, DRAWER, MODAL & NOTIFICATIONS
+      ====================================================================== */
+      const views = {
+        directory: document.getElementById('view-directory'),
+        terminal: document.getElementById('view-terminal'),
+        portfolio: document.getElementById('view-portfolio'),
+        leaderboard: document.getElementById('view-leaderboard')
+      };
+
+      function setView(v, subTab = null) {
+        state.view = v;
+        Object.keys(views).forEach(k => views[k].classList.toggle('hidden', k !== v));
+
+        const navM = document.getElementById('nav-tab-markets');
+        const navL = document.getElementById('nav-tab-leaderboard');
+        const activeNav = 'px-3.5 py-1.5 rounded-full text-[13px] font-medium bg-bento dark:bg-obsidian-card text-ink dark:text-white transition-colors';
+        const idleNav = 'px-3.5 py-1.5 rounded-full text-[13px] font-medium text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white transition-colors';
+        navM.className = (v === 'directory' || v === 'terminal') ? activeNav : idleNav;
+        navL.className = v === 'leaderboard' ? activeNav : idleNav;
+
+        if (v === 'terminal') setTimeout(resizeCanvas, 20);
+        if (v === 'portfolio') {
+          setWalletSubTab(subTab || state.walletSubTab);
+          renderHistoryTable();
+          renderReferralView();
+        }
+        if (v === 'leaderboard') renderLeaderboard();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      document.getElementById('nav-logo-btn').addEventListener('click', () => setView('directory'));
+      document.getElementById('nav-tab-markets').addEventListener('click', () => setView('directory'));
+      document.getElementById('nav-tab-leaderboard').addEventListener('click', () => setView('leaderboard'));
+      document.getElementById('back-to-markets').addEventListener('click', () => setView('directory'));
+      document.getElementById('portfolio-back-btn').addEventListener('click', () => setView('directory'));
+      document.getElementById('nav-wallet-btn').addEventListener('click', () => {
+        setView(state.view === 'portfolio' ? 'directory' : 'portfolio');
+      });
+      document.getElementById('announcement-cta').addEventListener('click', () => {
+        setView('directory');
+        document.getElementById('markets-directory-section').scrollIntoView({ behavior: 'smooth' });
+      });
+      document.getElementById('hero-explore-btn').addEventListener('click', () => {
+        document.getElementById('markets-directory-section').scrollIntoView({ behavior: 'smooth' });
+      });
+
+      // Mobile nav & Footer links
+      document.querySelectorAll('.mob-nav-btn').forEach(b => b.addEventListener('click', () => setView(b.dataset.mobNav)));
+      document.getElementById('mob-refer-btn').addEventListener('click', () => setView('portfolio', 'referrals'));
+      document.getElementById('footer-lb-link').addEventListener('click', () => setView('leaderboard'));
+      document.getElementById('footer-ref-link').addEventListener('click', () => setView('portfolio', 'referrals'));
+      document.querySelectorAll('.footer-cat-link').forEach(b => {
+        b.addEventListener('click', () => {
+          state.category = b.dataset.footerCat;
+          setView('directory');
+          renderCategoryTabs();
+          renderMarketsGrid();
+          setTimeout(() => document.getElementById('markets-directory-section').scrollIntoView({ behavior: 'smooth' }), 60);
+        });
+      });
+
+      // Live Feed Drawer
+      const lfDrawer = document.getElementById('live-feed-drawer');
+      const lfBackdrop = document.getElementById('live-feed-backdrop');
+      function openLiveFeed() { lfBackdrop.classList.remove('hidden'); lfDrawer.classList.remove('translate-x-full'); }
+      function closeLiveFeed() { lfBackdrop.classList.add('hidden'); lfDrawer.classList.add('translate-x-full'); }
+      document.getElementById('nav-tab-livefeed').addEventListener('click', openLiveFeed);
+      document.getElementById('mob-livefeed-btn').addEventListener('click', openLiveFeed);
+      document.getElementById('footer-feed-link').addEventListener('click', openLiveFeed);
+      document.getElementById('close-live-feed').addEventListener('click', closeLiveFeed);
+      lfBackdrop.addEventListener('click', closeLiveFeed);
+
+      // How It Works Modal
+      const howModal = document.getElementById('how-modal');
+      function openHow() { howModal.classList.remove('hidden'); howModal.classList.add('flex'); }
+      function closeHow() { howModal.classList.add('hidden'); howModal.classList.remove('flex'); }
+      ['open-how-modal', 'hero-how-btn', 'fairness-learn-btn', 'mob-how-btn', 'footer-how-link'].forEach(id => {
+        document.getElementById(id).addEventListener('click', openHow);
+      });
+      document.getElementById('close-how-modal').addEventListener('click', closeHow);
+      document.getElementById('got-it-btn').addEventListener('click', closeHow);
+
+      // Quick Search Button -> Jump & Focus Directory Search
+      const dirSearch = document.getElementById('directory-search-input');
+      function focusSearch() {
+        if (state.view !== 'directory') setView('directory');
+        setTimeout(() => {
+          dirSearch.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          dirSearch.focus();
+        }, 60);
+      }
+      document.getElementById('nav-search-btn').addEventListener('click', focusSearch);
+      dirSearch.addEventListener('input', (e) => {
+        state.search = e.target.value;
+        renderMarketsGrid();
+      });
+
+      // Notification Bell Dropdown
+      const notifDropdown = document.getElementById('notif-dropdown');
+      function renderNotifications() {
+        const unread = state.notifications.filter(n => n.unread).length;
+        const badge = document.getElementById('notif-unread-badge');
+        badge.textContent = unread;
+        badge.classList.toggle('hidden', unread === 0);
+
+        document.getElementById('notif-list').innerHTML = state.notifications.map(n => `
+          <div class="p-3.5 ${n.unread ? 'bg-bento/80 dark:bg-obsidian' : ''} hover:bg-bento dark:hover:bg-neutral-800/60 transition-colors">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-semibold text-ink dark:text-white">${n.title}</span>
+              <span class="font-mono text-[10px] text-muted shrink-0">${n.time}</span>
+            </div>
+            <p class="text-muted dark:text-neutral-400 mt-0.5 leading-snug">${n.desc}</p>
+          </div>
+        `).join('');
+      }
+      document.getElementById('notif-bell-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        notifDropdown.classList.toggle('hidden');
+      });
+      document.getElementById('notif-mark-read').addEventListener('click', () => {
+        state.notifications.forEach(n => n.unread = false);
+        renderNotifications();
+        showToast('All notifications marked as read.');
+      });
+      document.addEventListener('click', (e) => {
+        if (!notifDropdown.contains(e.target) && e.target.id !== 'notif-bell-btn') {
+          notifDropdown.classList.add('hidden');
+        }
+      });
+
+      /* ======================================================================
+         7. INTERACTIVE ORB STAGE (ElevenLabs Signature Hero Stage)
+      ====================================================================== */
+      function getOrbMarkets() {
+        const list = marketsData.filter(m => m.status === 'live' && m.categories.includes(state.orbCat));
+        return list.length ? list : marketsData.filter(m => m.status === 'live').slice(0, 3);
+      }
+
+      function renderOrbStage() {
+        const list = getOrbMarkets();
+        if (state.orbIndex >= list.length) state.orbIndex = 0;
+        const active = list[state.orbIndex];
+
+        // Build 3 visible orb slots (left neighbor, center active, right neighbor)
+        const prevIdx = (state.orbIndex - 1 + list.length) % list.length;
+        const nextIdx = (state.orbIndex + 1) % list.length;
+
+        const stageRow = document.getElementById('orb-stage-row');
+        const items = list.length === 1
+          ? [{ m: active, idx: 0, center: true }]
+          : list.length === 2
+            ? [{ m: active, idx: state.orbIndex, center: true }, { m: list[nextIdx], idx: nextIdx, center: false }]
+            : [
+                { m: list[prevIdx], idx: prevIdx, center: false },
+                { m: active, idx: state.orbIndex, center: true },
+                { m: list[nextIdx], idx: nextIdx, center: false }
+              ];
+
+        stageRow.innerHTML = items.map(item => {
+          if (item.center) {
+            return `
+              <button type="button" data-launch-orb="${item.m.id}" class="group relative w-44 h-44 sm:w-52 sm:h-52 orb-sphere ${item.m.orbClass} orb-active-stage flex items-center justify-center focus:outline-none transition-transform duration-300" title="Open ${item.m.title}">
+                <span class="relative z-10 w-12 h-12 rounded-full bg-white/95 text-ink shadow-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg class="w-4 h-4 ml-0.5" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+                </span>
+              </button>
+            `;
+          } else {
+            return `
+              <button type="button" data-select-orb="${item.idx}" class="hidden sm:flex w-28 h-28 md:w-32 md:h-32 orb-sphere ${item.m.orbClass} opacity-75 hover:opacity-100 hover:scale-105 transition-all duration-300 items-center justify-center focus:outline-none" title="Preview ${item.m.title}">
+              </button>
+            `;
+          }
+        }).join('');
+
+        document.getElementById('orb-active-title').textContent = active.title;
+        document.getElementById('orb-active-timer').textContent = `Live ${active.timer}`;
+        document.getElementById('orb-active-yield').textContent = `x${active.yieldRate.toFixed(2)}/h`;
+        document.getElementById('orb-active-vol').textContent = `$${active.volume.toFixed(2)}`;
+
+        stageRow.querySelectorAll('[data-select-orb]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            state.orbIndex = Number(btn.dataset.selectOrb);
+            renderOrbStage();
+          });
+        });
+        stageRow.querySelectorAll('[data-launch-orb]').forEach(btn => {
+          btn.addEventListener('click', () => openMarketTerminal(active));
+        });
+
+        document.getElementById('orb-open-market-btn').onclick = () => openMarketTerminal(active);
+      }
+
+      document.querySelectorAll('.orb-cat-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.orbCat = btn.dataset.orbCat;
+          state.orbIndex = 0;
+          document.querySelectorAll('.orb-cat-tab').forEach(b => {
+            const isSel = b === btn;
+            b.className = isSel
+              ? 'orb-cat-tab pb-3 px-2 text-xs sm:text-[13px] font-medium border-b-2 border-ink dark:border-white text-ink dark:text-white flex items-center gap-2 whitespace-nowrap transition-colors'
+              : 'orb-cat-tab pb-3 px-2 text-xs sm:text-[13px] font-medium border-b-2 border-transparent text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white flex items-center gap-2 whitespace-nowrap transition-colors';
+          });
+          renderOrbStage();
+        });
+      });
+
+      document.getElementById('orb-prev-btn').addEventListener('click', () => {
+        const list = getOrbMarkets();
+        state.orbIndex = (state.orbIndex - 1 + list.length) % list.length;
+        renderOrbStage();
+      });
+      document.getElementById('orb-next-btn').addEventListener('click', () => {
+        const list = getOrbMarkets();
+        state.orbIndex = (state.orbIndex + 1) % list.length;
+        renderOrbStage();
+      });
+
+      /* ======================================================================
+         8. MARKETS DIRECTORY GRID (ALL 12 MARKETS)
+      ====================================================================== */
+      const catDefs = [
+        { key: 'All', label: 'All' },
+        { key: 'Tweets', label: 'Tweets' },
+        { key: 'GTA VI', label: 'GTA VI' },
+        { key: 'Streamers', label: 'Streamers' },
+        { key: 'Crypto & AI', label: 'Crypto & AI' }
+      ];
+
+      function renderCategoryTabs() {
+        const wrap = document.getElementById('category-tabs');
+        wrap.innerHTML = catDefs.map(c => {
+          const count = c.key === 'All' ? marketsData.length : marketsData.filter(m => m.categories.includes(c.key)).length;
+          const active = state.category === c.key;
+          const cls = active
+            ? 'bg-ink dark:bg-white text-white dark:text-ink'
+            : 'bg-bento dark:bg-obsidian-card text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white border border-hairline dark:border-obsidian-border';
+          return `
+            <button type="button" data-cat="${c.key}" class="cat-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap flex items-center gap-1.5 transition-colors ${cls}">
+              <span>${c.label}</span>
+              <span class="font-mono text-[10px] opacity-75">${count}</span>
+            </button>
+          `;
+        }).join('');
+
+        wrap.querySelectorAll('.cat-tab-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            state.category = btn.dataset.cat;
+            renderCategoryTabs();
+            renderMarketsGrid();
+          });
+        });
+      }
+
+      function renderMarketsGrid() {
+        const grid = document.getElementById('markets-grid');
+        const q = state.search.trim().toLowerCase();
+
+        const filtered = marketsData.filter(m => {
+          if (state.category !== 'All' && !m.categories.includes(state.category)) return false;
+          if (state.hideOffline && m.status === 'offline') return false;
+          if (q && !m.title.toLowerCase().includes(q) && !m.tagLabel.toLowerCase().includes(q)) return false;
+          return true;
+        });
+
+        if (!filtered.length) {
+          grid.innerHTML = `
+            <div class="col-span-full rounded-3xl bg-bento dark:bg-obsidian-card border border-hairline dark:border-obsidian-border p-12 text-center space-y-1.5">
+              <div class="text-sm font-semibold text-ink dark:text-white">No markets match your filter</div>
+              <p class="text-xs text-muted dark:text-neutral-400">Clear your search query or toggle offline markets.</p>
+            </div>
+          `;
+          return;
+        }
+
+        grid.innerHTML = filtered.map(m => {
+          if (m.status === 'live') {
+            const detPct = 100 - m.survPct;
+            const badgeHtml = m.badge === 'HOT'
+              ? '<span class="px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 font-mono text-[10px] font-semibold">HOT</span>'
+              : m.badge === 'NEW'
+                ? '<span class="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-mono text-[10px] font-semibold">NEW</span>'
+                : '';
+
+            return `
+              <article data-open-market="${m.id}" class="market-card cursor-pointer bg-white dark:bg-obsidian-card rounded-2xl border border-hairline dark:border-obsidian-border p-5 flex flex-col justify-between gap-4 group">
+                <div class="space-y-4">
+                  <!-- Top Row: Live Timer + Tags -->
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-bento dark:bg-obsidian text-emerald-600 dark:text-emerald-400 font-mono text-[11px] font-medium">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 live-dot"></span>
+                      <span class="tabular-nums">Live ${m.timer}</span>
+                    </span>
+                    <div class="flex items-center gap-1.5">
+                      ${badgeHtml}
+                      <span class="px-2.5 py-0.5 rounded-full bg-bento dark:bg-obsidian text-muted dark:text-neutral-400 text-[10px] font-medium">${m.tagLabel}</span>
+                    </div>
+                  </div>
+
+                  <!-- Mini Luminous Orb + Title -->
+                  <div class="flex items-start gap-3.5">
+                    <div class="w-10 h-10 orb-sphere ${m.orbClass} shrink-0"></div>
+                    <div class="min-w-0">
+                      <div class="text-[11px] text-muted dark:text-neutral-400">Earn when / until</div>
+                      <h3 class="text-sm font-semibold text-ink dark:text-white leading-snug tracking-tight mt-0.5">
+                        ${m.title}
+                      </h3>
+                    </div>
+                  </div>
+
+                  <!-- Minimalist Survivor vs Detonator Bar -->
+                  <div class="space-y-1.5">
+                    <div class="flex items-center justify-between text-[11px] font-mono">
+                      <span class="text-emerald-600 dark:text-emerald-400">Survivors ${m.survPct}%</span>
+                      <span class="text-orange-600 dark:text-orange-400">Detonators ${detPct}%</span>
+                    </div>
+                    <div class="h-1 w-full rounded-full bg-bento dark:bg-obsidian overflow-hidden flex">
+                      <div class="h-full bg-emerald-500" style="width: ${m.survPct}%"></div>
+                      <div class="h-full bg-orange-500" style="width: ${detPct}%"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Yield, Volume & Action Row -->
+                <div class="pt-3.5 border-t border-hairline dark:border-obsidian-border space-y-3">
+                  <div class="flex items-end justify-between">
+                    <div>
+                      <div class="text-[10px] font-mono uppercase text-muted dark:text-neutral-500">Yield Rate</div>
+                      <div class="font-mono text-base font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">x${m.yieldRate.toFixed(2)}/h</div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-[10px] font-mono uppercase text-muted dark:text-neutral-500">Volume</div>
+                      <div class="font-mono text-base font-semibold text-ink dark:text-white tabular-nums">$${m.volume.toFixed(2)}</div>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center justify-between text-xs font-medium text-ink dark:text-white pt-1">
+                    <span class="group-hover:underline">Open market</span>
+                    <span class="transition-transform group-hover:translate-x-1">→</span>
+                  </div>
+                </div>
+              </article>
+            `;
+          } else {
+            const isNotified = state.notifiedIds.has(m.id);
+            return `
+              <article class="bg-bento/75 dark:bg-obsidian-card/60 rounded-2xl border border-hairline dark:border-obsidian-border p-5 flex flex-col justify-between gap-4">
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="px-2.5 py-0.5 rounded-full bg-white dark:bg-obsidian border border-hairline dark:border-obsidian-border text-muted dark:text-neutral-400 font-mono text-[10px] font-medium">Offline</span>
+                    <span class="text-[10px] font-medium text-muted dark:text-neutral-500">${m.tagLabel}</span>
+                  </div>
+
+                  <div class="flex items-start gap-3.5 opacity-70">
+                    <div class="w-10 h-10 orb-sphere orb-silver shrink-0"></div>
+                    <div class="min-w-0">
+                      <div class="text-[11px] font-mono text-muted dark:text-neutral-500">Paused • Last ${m.timer}</div>
+                      <h3 class="text-sm font-semibold text-ink dark:text-neutral-300 leading-snug mt-0.5">${m.title}</h3>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="pt-3.5 border-t border-hairline dark:border-obsidian-border flex items-center justify-between">
+                  <div>
+                    <div class="text-[10px] font-mono uppercase text-muted dark:text-neutral-500">Last Volume</div>
+                    <div class="font-mono text-sm font-semibold text-muted dark:text-neutral-400 tabular-nums">$${m.volume.toFixed(2)}</div>
+                  </div>
+                  <button type="button" data-notify-id="${m.id}" class="notify-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors ${isNotified ? 'bg-ink dark:bg-white text-white dark:text-ink' : 'bg-white dark:bg-obsidian border border-hairline dark:border-obsidian-border hover:border-ink dark:hover:border-neutral-500 text-ink dark:text-white'}">
+                    ${isNotified ? '✓ Notified' : 'Notify me'}
+                  </button>
+                </div>
+              </article>
+            `;
+          }
+        }).join('');
+
+        grid.querySelectorAll('[data-open-market]').forEach(card => {
+          card.addEventListener('click', () => {
+            const m = marketsData.find(item => item.id === card.dataset.openMarket);
+            if (m) openMarketTerminal(m);
+          });
+        });
+
+        grid.querySelectorAll('.notify-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = btn.dataset.notifyId;
+            const m = marketsData.find(item => item.id === id);
+            if (state.notifiedIds.has(id)) {
+              state.notifiedIds.delete(id);
+              showToast(`Removed alert for ${m.title}.`);
+            } else {
+              state.notifiedIds.add(id);
+              showToast(`Alert enabled — we'll notify you when ${m.title} goes live.`, 'success');
+            }
+            renderMarketsGrid();
+          });
+        });
+      }
+
+      document.getElementById('hide-offline-toggle').addEventListener('click', (e) => {
+        state.hideOffline = !state.hideOffline;
+        e.currentTarget.setAttribute('aria-checked', String(state.hideOffline));
+        document.getElementById('toggle-track').className = state.hideOffline
+          ? 'w-8 h-4 rounded-full bg-ink dark:bg-white p-0.5 flex items-center transition-colors'
+          : 'w-8 h-4 rounded-full bg-neutral-300 dark:bg-neutral-700 p-0.5 flex items-center transition-colors';
+        document.getElementById('toggle-knob').className = state.hideOffline
+          ? 'w-3 h-3 rounded-full bg-white dark:bg-ink shadow transition-transform'
+          : 'w-3 h-3 rounded-full bg-white shadow transition-transform';
+        document.getElementById('toggle-knob').style.transform = state.hideOffline ? 'translateX(16px)' : 'translateX(0px)';
+        renderMarketsGrid();
+      });
+
+      /* ======================================================================
+         9. VIEW 2: TRADING TERMINAL + WHEN (10m / 30m / 60m) + DUAL-THEME CANVAS
+      ====================================================================== */
+      let chartPoints = [];
+      let shockwaveRadius = 0;
+
+      function getWhenMultiplier(mins) {
+        const base = state.activeMarket ? state.activeMarket.yieldRate : 1.59;
+        if (mins === 10) return Number((3.40 + base * 0.50).toFixed(2)); // ~x4.20 for Elon
+        if (mins === 30) return Number((1.95 + base * 0.31).toFixed(2)); // ~x2.45
+        return Number((1.35 + base * 0.19).toFixed(2));                  // ~x1.65
+      }
+
+      function seedChart(baseRate) {
+        chartPoints = [];
+        for (let i = 0; i < 80; i++) {
+          const t = i / 79;
+          chartPoints.push(1.0 + Math.pow(t, 1.35) * (baseRate - 1.0));
+        }
+      }
+
+      function openMarketTerminal(market) {
+        state.activeMarket = market;
+        state.termYield = market.yieldRate;
+        state.termTriggered = false;
+        shockwaveRadius = 0;
+        seedChart(market.yieldRate);
+
+        const survAmt = market.volume * (market.survPct / 100);
+        const detAmt = market.volume - survAmt;
+
+        document.getElementById('term-orb').className = `w-12 h-12 orb-sphere ${market.orbClass} shrink-0`;
+        document.getElementById('term-title').textContent = market.title;
+        document.getElementById('term-timer').textContent = `Live ${market.timer}`;
+        document.getElementById('term-cat-badge').textContent = market.tagLabel;
+        document.getElementById('term-oracle-src').textContent = `Oracle: ${market.oracle}`;
+        document.getElementById('term-pool-total').textContent = `$${market.volume.toFixed(2)}`;
+        document.getElementById('term-surv-amt').textContent = `$${survAmt.toFixed(2)}`;
+        document.getElementById('term-det-amt').textContent = `$${detAmt.toFixed(2)}`;
+        document.getElementById('term-surv-pct').textContent = `(${market.survPct}%)`;
+        document.getElementById('term-det-pct').textContent = `(${100 - market.survPct}%)`;
+        document.getElementById('term-surv-bar').style.width = `${market.survPct}%`;
+        document.getElementById('term-det-bar').style.width = `${100 - market.survPct}%`;
+
+        document.getElementById('term-triggered-overlay').classList.add('hidden');
+        document.getElementById('term-triggered-overlay').classList.remove('flex');
+        document.getElementById('sim-trigger-label').textContent = 'Simulate Event Trigger';
+
+        renderTradeDock();
+        setView('terminal');
+      }
+
+      // Canvas setup & render loop (adapts dynamically to Light & Dark theme)
+      const canvas = document.getElementById('yield-canvas');
+      const ctx = canvas.getContext('2d');
+
+      function resizeCanvas() {
+        if (!canvas.parentElement) return;
+        const rect = canvas.parentElement.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      window.addEventListener('resize', resizeCanvas);
+
+      function drawChart() {
+        if (state.view === 'terminal' && chartPoints.length > 1) {
+          const rect = canvas.parentElement.getBoundingClientRect();
+          const w = rect.width;
+          const h = rect.height;
+          if (w > 0 && h > 0) {
+            ctx.clearRect(0, 0, w, h);
+            const isDark = state.dark;
+            const padL = 46, padR = 24, padT = 22, padB = 26;
+            const cw = w - padL - padR;
+            const ch = h - padT - padB;
+            const minV = 1.0;
+            const maxV = Math.max(2.4, state.termYield * 1.25, state.autoCashoutOn ? state.autoCashoutTarget * 1.1 : 1.0);
+            const yOf = (val) => padT + ch - ((val - minV) / (maxV - minV)) * ch;
+
+            // Hairline horizontal grid
+            ctx.font = '500 10px "JetBrains Mono", monospace';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            for (let i = 0; i <= 4; i++) {
+              const v = minV + ((maxV - minV) / 4) * i;
+              const y = yOf(v);
+              ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.06)' : '#E5E5E5';
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(padL, y);
+              ctx.lineTo(w - padR, y);
+              ctx.stroke();
+
+              ctx.fillStyle = isDark ? '#71717A' : '#737373';
+              ctx.fillText(`x${v.toFixed(2)}`, padL - 8, y);
+            }
+
+            // Highlight selected 10m / 30m / 60m detonation window zone when WHEN side is selected
+            if (state.tradeSide === 'when') {
+              const winRatio = state.whenWindowMins === 10 ? 0.16 : state.whenWindowMins === 30 ? 0.28 : 0.42;
+              const winW = cw * winRatio;
+              const winX = w - padR - winW;
+              ctx.fillStyle = isDark ? 'rgba(234, 88, 12, 0.14)' : 'rgba(234, 88, 12, 0.08)';
+              ctx.fillRect(winX, padT, winW, ch);
+              ctx.strokeStyle = 'rgba(234, 88, 12, 0.5)';
+              ctx.setLineDash([4, 4]);
+              ctx.beginPath();
+              ctx.moveTo(winX, padT);
+              ctx.lineTo(winX, h - padB);
+              ctx.stroke();
+              ctx.setLineDash([]);
+
+              ctx.fillStyle = '#EA580C';
+              ctx.textAlign = 'left';
+              ctx.fillText(`WHEN ${state.whenWindowMins}m Window (x${getWhenMultiplier(state.whenWindowMins)})`, winX + 8, padT + 14);
+            }
+
+            // Auto Cash-Out dashed target line for UNTIL side
+            if (state.tradeSide === 'until' && state.autoCashoutOn) {
+              const ty = yOf(state.autoCashoutTarget);
+              if (ty >= padT && ty <= h - padB) {
+                ctx.strokeStyle = '#10B981';
+                ctx.setLineDash([5, 4]);
+                ctx.lineWidth = 1.4;
+                ctx.beginPath();
+                ctx.moveTo(padL, ty);
+                ctx.lineTo(w - padR, ty);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = '#10B981';
+                ctx.textAlign = 'left';
+                ctx.fillText(`Auto Cash-Out x${state.autoCashoutTarget.toFixed(2)}`, padL + 8, ty - 10);
+              }
+            }
+
+            // Plot curve
+            const pts = chartPoints.map((v, idx) => ({
+              x: padL + (idx / (chartPoints.length - 1)) * cw * (state.tradeSide === 'when' ? 0.78 : 0.96),
+              y: yOf(v)
+            }));
+
+            const isOrange = state.termTriggered || state.tradeSide === 'when';
+            const lineColor = isOrange ? '#EA580C' : '#10B981';
+            const fillGrad = ctx.createLinearGradient(0, padT, 0, h - padB);
+            if (isOrange) {
+              fillGrad.addColorStop(0, 'rgba(234, 88, 12, 0.18)');
+              fillGrad.addColorStop(1, 'rgba(234, 88, 12, 0.0)');
+            } else {
+              fillGrad.addColorStop(0, 'rgba(16, 185, 129, 0.18)');
+              fillGrad.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(pts[0].x, h - padB);
+            pts.forEach(p => ctx.lineTo(p.x, p.y));
+            ctx.lineTo(pts[pts.length - 1].x, h - padB);
+            ctx.closePath();
+            ctx.fillStyle = fillGrad;
+            ctx.fill();
+
+            ctx.beginPath();
+            pts.forEach((p, idx) => idx === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+            ctx.strokeStyle = lineColor;
+            ctx.lineWidth = 2.4;
+            ctx.stroke();
+
+            // Glowing pulse head + shockwave
+            const tip = pts[pts.length - 1];
+            if (state.termTriggered && shockwaveRadius < 120) {
+              shockwaveRadius += 2.2;
+              ctx.beginPath();
+              ctx.arc(tip.x, tip.y, shockwaveRadius, 0, Math.PI * 2);
+              ctx.strokeStyle = `rgba(234, 88, 12, ${Math.max(0, 1 - shockwaveRadius / 120)})`;
+              ctx.lineWidth = 2;
+              ctx.stroke();
+            }
+
+            ctx.beginPath();
+            ctx.arc(tip.x, tip.y, 9, 0, Math.PI * 2);
+            ctx.fillStyle = isOrange ? 'rgba(234, 88, 12, 0.22)' : 'rgba(16, 185, 129, 0.22)';
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(tip.x, tip.y, 4.5, 0, Math.PI * 2);
+            ctx.fillStyle = isDark ? '#0A0A0A' : '#FFFFFF';
+            ctx.strokeStyle = lineColor;
+            ctx.lineWidth = 2.4;
+            ctx.fill();
+            ctx.stroke();
+          }
+        }
+        requestAnimationFrame(drawChart);
+      }
+      requestAnimationFrame(drawChart);
+
+      // Order Dock rendering
+      const sideUntilBtn = document.getElementById('side-until-btn');
+      const sideWhenBtn = document.getElementById('side-when-btn');
+      const untilBox = document.getElementById('until-controls-box');
+      const whenBox = document.getElementById('when-controls-box');
+      const sideNote = document.getElementById('dock-side-note');
+      const buyBtn = document.getElementById('buy-position-btn');
+      const amtInput = document.getElementById('trade-amount-input');
+
+      function renderTradeDock() {
+        const amt = Math.max(1, Math.min(50, Number(amtInput.value) || 1));
+        const m10 = getWhenMultiplier(10);
+        const m30 = getWhenMultiplier(30);
+        const m60 = getWhenMultiplier(60);
+
+        document.getElementById('odds-10m').textContent = `x${m10.toFixed(2)}`;
+        document.getElementById('odds-30m').textContent = `x${m30.toFixed(2)}`;
+        document.getElementById('odds-60m').textContent = `x${m60.toFixed(2)}`;
+        document.getElementById('side-when-odds-preview').textContent = `Up to x${m10.toFixed(2)}`;
+        document.getElementById('side-until-yield').textContent = `x${state.termYield.toFixed(2)}/h`;
+        document.getElementById('summary-size').textContent = `$${amt.toFixed(2)}`;
+
+        const windowHud = document.getElementById('term-window-hud');
+
+        if (state.tradeSide === 'until') {
+          sideUntilBtn.className = 'p-3.5 rounded-2xl border-2 border-ink dark:border-white bg-bento dark:bg-obsidian text-left transition-all';
+          sideWhenBtn.className = 'p-3.5 rounded-2xl border border-hairline dark:border-obsidian-border bg-white dark:bg-obsidian-card hover:border-ink dark:hover:border-neutral-500 text-left transition-all';
+          untilBox.classList.remove('hidden');
+          whenBox.classList.add('hidden');
+          windowHud.classList.add('hidden');
+
+          sideNote.innerHTML = 'Earn continuous yield every second until the event triggers. Cash out anytime with a 10-second delay.';
+          document.getElementById('summary-rate-label').textContent = 'Yield Rate';
+          document.getElementById('summary-rate').textContent = `x${state.termYield.toFixed(2)}/h`;
+          document.getElementById('summary-rate').className = 'font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums';
+          document.getElementById('summary-payout-label').textContent = 'Est. 1h Value';
+          document.getElementById('summary-payout').textContent = `$${(amt * state.termYield).toFixed(2)}`;
+          buyBtn.textContent = 'Open Position (UNTIL)';
+        } else {
+          sideWhenBtn.className = 'p-3.5 rounded-2xl border-2 border-ink dark:border-white bg-bento dark:bg-obsidian text-left transition-all';
+          sideUntilBtn.className = 'p-3.5 rounded-2xl border border-hairline dark:border-obsidian-border bg-white dark:bg-obsidian-card hover:border-ink dark:hover:border-neutral-500 text-left transition-all';
+          untilBox.classList.add('hidden');
+          whenBox.classList.remove('hidden');
+          windowHud.classList.remove('hidden');
+          windowHud.textContent = `WHEN Window: ${state.whenWindowMins}m`;
+
+          const activeOdds = getWhenMultiplier(state.whenWindowMins);
+          sideNote.innerHTML = `Win <strong class="text-orange-600 dark:text-orange-400">x${activeOdds.toFixed(2)}</strong> ($${(amt * activeOdds).toFixed(2)}) if the event triggers within the next <strong class="text-ink dark:text-white">${state.whenWindowMins} minutes</strong>.`;
+
+          document.getElementById('summary-rate-label').textContent = `WHEN (${state.whenWindowMins}m) Multiplier`;
+          document.getElementById('summary-rate').textContent = `x${activeOdds.toFixed(2)}`;
+          document.getElementById('summary-rate').className = 'font-semibold text-orange-600 dark:text-orange-400 tabular-nums';
+          document.getElementById('summary-payout-label').textContent = 'Est. Payout';
+          document.getElementById('summary-payout').textContent = `$${(amt * activeOdds).toFixed(2)}`;
+          buyBtn.textContent = `Open Position (WHEN ${state.whenWindowMins}m)`;
+
+          document.querySelectorAll('.when-min-btn').forEach(b => {
+            const sel = Number(b.dataset.whenMin) === state.whenWindowMins;
+            b.className = sel
+              ? 'when-min-btn p-2.5 rounded-xl border-2 border-ink dark:border-white bg-white dark:bg-obsidian-card text-center transition-all'
+              : 'when-min-btn p-2.5 rounded-xl border border-hairline dark:border-obsidian-border bg-white/60 dark:bg-obsidian-card/60 text-center hover:border-ink dark:hover:border-neutral-500 transition-all';
+          });
+        }
+
+        document.querySelectorAll('.amt-preset').forEach(btn => {
+          const active = Number(btn.dataset.amt) === amt;
+          btn.className = active
+            ? 'amt-preset py-2 rounded-full text-xs font-mono font-semibold bg-ink dark:bg-white text-white dark:text-ink transition-all'
+            : 'amt-preset py-2 rounded-full text-xs font-mono font-medium bg-bento dark:bg-obsidian hover:bg-neutral-200 dark:hover:bg-neutral-800 text-ink dark:text-neutral-200 transition-all';
+        });
+      }
+
+      sideUntilBtn.addEventListener('click', () => { state.tradeSide = 'until'; renderTradeDock(); });
+      sideWhenBtn.addEventListener('click', () => { state.tradeSide = 'when'; renderTradeDock(); });
+      document.querySelectorAll('.when-min-btn').forEach(b => {
+        b.addEventListener('click', () => { state.whenWindowMins = Number(b.dataset.whenMin); renderTradeDock(); });
+      });
+      amtInput.addEventListener('input', renderTradeDock);
+      document.querySelectorAll('.amt-preset').forEach(btn => {
+        btn.addEventListener('click', () => { amtInput.value = btn.dataset.amt; renderTradeDock(); });
+      });
+
+      document.getElementById('auto-cashout-toggle').addEventListener('click', (e) => {
+        state.autoCashoutOn = !state.autoCashoutOn;
+        e.target.textContent = state.autoCashoutOn ? 'Active' : 'Off';
+        e.target.className = state.autoCashoutOn
+          ? 'px-2.5 py-0.5 rounded-full bg-ink dark:bg-white text-white dark:text-ink font-mono text-[11px] font-medium transition-colors'
+          : 'px-2.5 py-0.5 rounded-full bg-white dark:bg-obsidian-card border border-hairline dark:border-obsidian-border font-mono text-[11px] font-medium text-muted dark:text-neutral-300 transition-colors';
+        document.getElementById('auto-cashout-slider-wrap').classList.toggle('hidden', !state.autoCashoutOn);
+      });
+      document.getElementById('auto-cashout-slider').addEventListener('input', (e) => {
+        state.autoCashoutTarget = Number(e.target.value);
+        document.getElementById('auto-cashout-val').textContent = `x${state.autoCashoutTarget.toFixed(2)}`;
+      });
+
+      // Dock Open / Live Switcher
+      const dockTabOpen = document.getElementById('dock-tab-open');
+      const dockTabLive = document.getElementById('dock-tab-live');
+      function setDockTab(tab) {
+        state.dockTab = tab;
+        document.getElementById('dock-panel-open').classList.toggle('hidden', tab !== 'open');
+        document.getElementById('dock-panel-live').classList.toggle('hidden', tab !== 'live');
+        const activeCls = 'py-2 rounded-full text-xs font-medium bg-ink dark:bg-white text-white dark:text-ink transition-all';
+        const idleCls = 'py-2 rounded-full text-xs font-medium text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white transition-all';
+        dockTabOpen.className = tab === 'open' ? activeCls : idleCls;
+        dockTabLive.className = (tab === 'live' ? activeCls : idleCls) + ' flex items-center justify-center gap-1.5';
+      }
+      dockTabOpen.addEventListener('click', () => setDockTab('open'));
+      dockTabLive.addEventListener('click', () => setDockTab('live'));
+
+      // Buy Position Action
+      buyBtn.addEventListener('click', () => {
+        if (state.termTriggered) {
+          showToast('Round is resolved. Reset live round first.', 'error');
+          return;
+        }
+        const amt = Math.max(1, Math.min(50, Number(amtInput.value) || 1));
+        if (amt > state.balance) {
+          showToast(`Insufficient balance ($${state.balance.toFixed(2)}). Open Wallet for +$10 Demo Deposit.`, 'error');
+          return;
+        }
+        state.balance -= amt;
+        const isUntil = state.tradeSide === 'until';
+        const lockedOdds = isUntil ? null : getWhenMultiplier(state.whenWindowMins);
+
+        state.livePositions.unshift({
+          id: Date.now(),
+          marketId: state.activeMarket.id,
+          marketTitle: state.activeMarket.title,
+          side: isUntil ? 'Survivor' : 'Detonator',
+          stake: amt,
+          currentVal: amt,
+          yieldRate: state.termYield,
+          whenWindowMins: isUntil ? null : state.whenWindowMins,
+          whenSecsLeft: isUntil ? 0 : state.whenWindowMins * 60,
+          lockedMult: lockedOdds
+        });
+        state.livePosIdx = 0;
+
+        state.history.unshift({
+          status: 'active',
+          outcome: 'Live',
+          market: state.activeMarket.title,
+          side: isUntil ? 'Survivor' : 'Detonator',
+          bet: `$${amt.toFixed(2)}`,
+          ret: isUntil ? `x${state.termYield.toFixed(2)}/h` : `x${lockedOdds.toFixed(2)} (${state.whenWindowMins}m)`,
+          payout: isUntil ? `$${amt.toFixed(2)}` : `Est. $${(amt * lockedOdds).toFixed(2)}`,
+          positive: true
+        });
+
+        pushLiveTradeItem(
+          '0x01b...4c09a',
+          state.activeMarket.title,
+          isUntil ? 'UNTIL' : `WHEN ${state.whenWindowMins}m`,
+          `$${amt.toFixed(2)}`,
+          isUntil
+        );
+
+        syncBalances();
+        renderLivePositionPanel();
+        renderHistoryTable();
+        showToast(isUntil
+          ? `Opened $${amt.toFixed(2)} UNTIL position.`
+          : `Opened $${amt.toFixed(2)} WHEN (${state.whenWindowMins}m @ x${lockedOdds.toFixed(2)}) position.`, 'success');
+        setDockTab('live');
+      });
+
+      function formatMMSS(totalSecs) {
+        const s = Math.max(0, Math.floor(totalSecs));
+        const m = Math.floor(s / 60);
+        const rem = s % 60;
+        return `${String(m).padStart(2, '0')}:${String(rem).padStart(2, '0')}`;
+      }
+
+      function renderLivePositionPanel() {
+        document.getElementById('dock-live-count').textContent = state.livePositions.length;
+        const cashoutBtn = document.getElementById('cashout-now-btn');
+
+        if (!state.livePositions.length) {
+          document.getElementById('live-pos-top-label').textContent = 'No Active Positions';
+          document.getElementById('live-counter-val').textContent = '$0.000000';
+          document.getElementById('live-pos-subtitle').textContent = 'Open a position to start earning';
+          document.getElementById('live-index-label').textContent = '0 / 0';
+          cashoutBtn.disabled = true;
+          cashoutBtn.classList.add('opacity-40');
+          return;
+        }
+
+        const pos = state.livePositions[state.livePosIdx] || state.livePositions[0];
+        document.getElementById('live-pos-market').textContent = pos.marketTitle;
+        document.getElementById('live-index-label').textContent = `Position ${state.livePosIdx + 1} / ${state.livePositions.length}`;
+
+        if (pos.side === 'Survivor') {
+          document.getElementById('live-pos-top-label').textContent = 'Live Accruing Value';
+          document.getElementById('live-pos-top-label').className = 'text-[11px] font-mono uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-semibold';
+          document.getElementById('live-counter-val').textContent = `$${pos.currentVal.toFixed(6)}`;
+          document.getElementById('live-pos-subtitle').textContent = `UNTIL Survivor • Stake $${pos.stake.toFixed(2)}`;
+          document.getElementById('live-pos-side').textContent = 'UNTIL (Survivor)';
+          document.getElementById('live-pos-side').className = 'font-semibold text-emerald-600 dark:text-emerald-400';
+          document.getElementById('live-pos-extra-label').textContent = 'Cash-Out Buffer';
+          document.getElementById('live-pos-extra-val').textContent = '10 seconds';
+          cashoutBtn.disabled = false;
+          cashoutBtn.classList.remove('opacity-40');
+          cashoutBtn.textContent = 'Cash Out Now';
+        } else {
+          document.getElementById('live-pos-top-label').textContent = `WHEN ${pos.whenWindowMins}m Countdown`;
+          document.getElementById('live-pos-top-label').className = 'text-[11px] font-mono uppercase tracking-wider text-orange-600 dark:text-orange-400 font-semibold';
+          document.getElementById('live-counter-val').textContent = formatMMSS(pos.whenSecsLeft);
+          document.getElementById('live-pos-subtitle').textContent = `Stake $${pos.stake.toFixed(2)} • Est. Payout $${(pos.stake * pos.lockedMult).toFixed(2)}`;
+          document.getElementById('live-pos-side').textContent = `WHEN ${pos.whenWindowMins}m (x${pos.lockedMult.toFixed(2)})`;
+          document.getElementById('live-pos-side').className = 'font-semibold text-orange-600 dark:text-orange-400';
+          document.getElementById('live-pos-extra-label').textContent = 'Settlement';
+          document.getElementById('live-pos-extra-val').textContent = 'Auto-Payout on Trigger';
+          cashoutBtn.disabled = true;
+          cashoutBtn.classList.add('opacity-40');
+          cashoutBtn.textContent = 'Locked Until Trigger / Expiry';
+        }
+      }
+
+      document.getElementById('live-prev-btn').addEventListener('click', () => {
+        if (!state.livePositions.length) return;
+        state.livePosIdx = (state.livePosIdx - 1 + state.livePositions.length) % state.livePositions.length;
+        renderLivePositionPanel();
+      });
+      document.getElementById('live-next-btn').addEventListener('click', () => {
+        if (!state.livePositions.length) return;
+        state.livePosIdx = (state.livePosIdx + 1) % state.livePositions.length;
+        renderLivePositionPanel();
+      });
+
+      // Cash Out with 10-second animated countdown bar
+      document.getElementById('cashout-now-btn').addEventListener('click', () => {
+        if (!state.livePositions.length) return;
+        const pos = state.livePositions[state.livePosIdx];
+        if (!pos || pos.side !== 'Survivor') return;
+        if (state.cashoutTimer) clearInterval(state.cashoutTimer);
+
+        let secs = 10.0;
+        const wrap = document.getElementById('cashout-progress-wrap');
+        const label = document.getElementById('cashout-secs-label');
+        const bar = document.getElementById('cashout-bar-fill');
+        wrap.classList.remove('hidden');
+        showToast(`Cash Out requested ($${pos.currentVal.toFixed(4)}) — 10s delay started.`);
+
+        state.cashoutTimer = setInterval(() => {
+          secs = Math.max(0, secs - 0.1);
+          label.textContent = `${secs.toFixed(1)}s`;
+          bar.style.width = `${(secs / 10) * 100}%`;
+          if (secs <= 0) {
+            clearInterval(state.cashoutTimer);
+            state.cashoutTimer = null;
+            wrap.classList.add('hidden');
+            const settled = pos.currentVal;
+            state.balance += settled;
+            state.livePositions.splice(state.livePosIdx, 1);
+            state.livePosIdx = 0;
+            state.history.unshift({
+              status: 'closed',
+              outcome: 'Won',
+              market: pos.marketTitle,
+              side: 'Survivor',
+              bet: `$${pos.stake.toFixed(2)}`,
+              ret: `x${(settled / pos.stake).toFixed(2)}`,
+              payout: `+$${(settled - pos.stake).toFixed(2)}`,
+              positive: true
+            });
+            syncBalances();
+            renderLivePositionPanel();
+            renderHistoryTable();
+            showToast(`Cash Out settled: +$${settled.toFixed(4)} added to Wallet.`, 'success');
+          }
+        }, 100);
+      });
+
+      // Simulate Event Trigger
+      function toggleEventTrigger() {
+        state.termTriggered = !state.termTriggered;
+        shockwaveRadius = 0;
+        const overlay = document.getElementById('term-triggered-overlay');
+        const label = document.getElementById('sim-trigger-label');
+        if (state.termTriggered) {
+          overlay.classList.remove('hidden');
+          overlay.classList.add('flex');
+          label.textContent = 'Reset Live Round';
+          showToast(`⚡ Event triggered on ${state.activeMarket.title}! Detonators win.`, 'error');
+        } else {
+          overlay.classList.add('hidden');
+          overlay.classList.remove('flex');
+          label.textContent = 'Simulate Event Trigger';
+          state.termYield = state.activeMarket.yieldRate;
+          seedChart(state.termYield);
+          showToast('Round reset to live tracking.', 'success');
+        }
+      }
+      document.getElementById('sim-trigger-btn').addEventListener('click', toggleEventTrigger);
+      document.getElementById('reset-round-btn').addEventListener('click', toggleEventTrigger);
+
+      // Lower Terminal Info Tabs
+      document.querySelectorAll('.term-info-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = btn.dataset.termTab;
+          document.querySelectorAll('.term-info-tab').forEach(b => {
+            b.className = b === btn
+              ? 'term-info-tab px-4 py-1.5 rounded-full text-xs font-medium bg-ink dark:bg-white text-white dark:text-ink transition-all'
+              : 'term-info-tab px-4 py-1.5 rounded-full text-xs font-medium text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white transition-all';
+          });
+          ['rules', 'holders', 'trades'].forEach(p => {
+            document.getElementById(`term-panel-${p}`).classList.toggle('hidden', p !== target);
+          });
+        });
+      });
+
+      /* ======================================================================
+         10. VIEW 3: WALLET (OVERVIEW + 11-TIER REFERRAL HUB)
+      ====================================================================== */
+      function setWalletSubTab(tab) {
+        state.walletSubTab = tab;
+        document.getElementById('wallet-panel-overview').classList.toggle('hidden', tab !== 'overview');
+        document.getElementById('wallet-panel-referrals').classList.toggle('hidden', tab !== 'referrals');
+
+        const btnOv = document.getElementById('wallet-subtab-overview');
+        const btnRef = document.getElementById('wallet-subtab-referrals');
+        btnOv.className = tab === 'overview'
+          ? 'px-4 py-1.5 rounded-full text-xs font-medium bg-ink dark:bg-white text-white dark:text-ink transition-all'
+          : 'px-4 py-1.5 rounded-full text-xs font-medium text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white transition-all';
+        btnRef.className = tab === 'referrals'
+          ? 'px-4 py-1.5 rounded-full text-xs font-medium bg-ink dark:bg-white text-white dark:text-ink transition-all flex items-center gap-1.5'
+          : 'px-4 py-1.5 rounded-full text-xs font-medium text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white transition-all flex items-center gap-1.5';
+      }
+
+      document.getElementById('wallet-subtab-overview').addEventListener('click', () => setWalletSubTab('overview'));
+      document.getElementById('wallet-subtab-referrals').addEventListener('click', () => {
+        setWalletSubTab('referrals');
+        renderReferralView();
+      });
+
+      document.getElementById('copy-wallet-btn').addEventListener('click', () => copyText('0x01b9f82a4c09a', 'Wallet address copied.'));
+      document.getElementById('copy-ref-link-btn').addEventListener('click', () => copyText('https://rocketmarkets.app/r/0x01b4c09a', 'Referral link copied.'));
+
+      document.getElementById('demo-deposit-btn').addEventListener('click', () => {
+        state.balance += 10.0;
+        syncBalances();
+        showToast('Added +$10.00 Demo Deposit to Wallet.', 'success');
+      });
+      document.getElementById('demo-withdraw-btn').addEventListener('click', () => {
+        if (state.balance < 1) { showToast('Minimum withdrawal is $1.00.', 'error'); return; }
+        const amt = Math.min(5, state.balance);
+        state.balance -= amt;
+        syncBalances();
+        showToast(`Withdrew $${amt.toFixed(2)} to 0x01b...4c09a.`);
+      });
+
+      function renderHistoryTable() {
+        const activeCount = state.history.filter(h => h.status === 'active').length;
+        document.getElementById('hist-active-num').textContent = activeCount;
+        const tbody = document.getElementById('portfolio-tbody');
+
+        const rows = state.history.filter(r => {
+          if (r.status !== state.histTab) return false;
+          if (state.histSide !== 'all' && r.side !== state.histSide) return false;
+          if (state.histOutcome !== 'all' && r.outcome !== state.histOutcome) return false;
+          return true;
+        });
+
+        if (!rows.length) {
+          tbody.innerHTML = '<tr><td colspan="6" class="py-10 text-center text-xs text-muted">No positions match this filter.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = rows.map(r => {
+          const badge = r.outcome === 'Won'
+            ? '<span class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono text-[11px] font-medium">Won</span>'
+            : r.outcome === 'Live'
+              ? '<span class="px-2.5 py-0.5 rounded-full bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border text-ink dark:text-white font-mono text-[11px] font-medium">Live</span>'
+              : '<span class="px-2.5 py-0.5 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 font-mono text-[11px] font-medium">Lost</span>';
+
+          return `
+            <tr class="hover:bg-bento/60 dark:hover:bg-obsidian/60 transition-colors">
+              <td class="py-3.5 px-5">${badge}</td>
+              <td class="py-3.5 px-5 font-medium text-ink dark:text-white text-xs sm:text-sm">${r.market}</td>
+              <td class="py-3.5 px-5 text-xs ${r.side === 'Survivor' ? 'text-emerald-600 dark:text-emerald-400' : 'text-orange-600 dark:text-orange-400'}">${r.side}</td>
+              <td class="py-3.5 px-5 font-mono text-ink dark:text-neutral-200 tabular-nums">${r.bet}</td>
+              <td class="py-3.5 px-5 font-mono text-muted dark:text-neutral-400 tabular-nums">${r.ret}</td>
+              <td class="py-3.5 px-5 text-right font-mono font-semibold tabular-nums ${r.positive ? 'text-emerald-600 dark:text-emerald-400' : 'text-orange-600 dark:text-orange-400'}">${r.payout}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      document.querySelectorAll('.hist-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.histTab = btn.dataset.htab;
+          document.querySelectorAll('.hist-tab-btn').forEach(b => {
+            b.className = b === btn
+              ? 'hist-tab-btn px-3.5 py-1 rounded-full text-xs font-medium bg-ink dark:bg-white text-white dark:text-ink transition-all'
+              : 'hist-tab-btn px-3.5 py-1 rounded-full text-xs font-medium text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white transition-all';
+          });
+          renderHistoryTable();
+        });
+      });
+      document.getElementById('hist-side-filter').addEventListener('change', (e) => { state.histSide = e.target.value; renderHistoryTable(); });
+      document.getElementById('hist-outcome-filter').addEventListener('change', (e) => { state.histOutcome = e.target.value; renderHistoryTable(); });
+
+      // 11-TIER REFERRAL VIEW RENDERER
+      function renderReferralView() {
+        const realCount = state.invitedUsers.filter(u => u.qualified).length;
+        const pendCount = state.invitedUsers.filter(u => !u.qualified).length;
+
+        document.getElementById('ref-real-count-top').textContent = realCount;
+        document.getElementById('ref-pending-count-top').textContent = pendCount;
+        document.getElementById('ref-cnt-all').textContent = state.invitedUsers.length;
+        document.getElementById('ref-cnt-qual').textContent = realCount;
+        document.getElementById('ref-cnt-pend').textContent = pendCount;
+
+        const nextTier = referralTiers.find(t => realCount < t.req) || referralTiers[referralTiers.length - 1];
+        document.getElementById('next-tier-label').textContent = realCount >= 1000
+          ? 'Max Tier Reached (1,000+ Real Users)'
+          : `${nextTier.req.toLocaleString()} Real Users (${realCount} / ${nextTier.req.toLocaleString()})`;
+
+        const completedTiers = referralTiers.filter(t => realCount >= t.req).length;
+        const pct = Math.min(100, Math.max(4, (completedTiers / referralTiers.length) * 100));
+        document.getElementById('tier-progress-bar').style.width = `${pct}%`;
+
+        // Render all 11 exact milestones
+        const grid = document.getElementById('referral-tiers-grid');
+        grid.innerHTML = referralTiers.map(t => {
+          const unlocked = realCount >= t.req;
+          const isNext = !unlocked && t.tier === nextTier.tier;
+          const cardCls = unlocked
+            ? 'border-ink dark:border-white bg-white dark:bg-obsidian'
+            : isNext
+              ? 'border-neutral-400 dark:border-neutral-500 bg-bento/80 dark:bg-obsidian/80'
+              : 'border-hairline dark:border-obsidian-border bg-bento/50 dark:bg-obsidian/40';
+
+          let actionHtml = '';
+          if (t.claimed) {
+            actionHtml = '<span class="font-mono text-[11px] font-medium text-emerald-600 dark:text-emerald-400">✓ Claimed</span>';
+          } else if (unlocked) {
+            actionHtml = `<button type="button" data-claim-tier="${t.tier}" class="claim-tier-btn px-3.5 py-1 rounded-full bg-ink dark:bg-white text-white dark:text-ink font-medium text-[11px] hover:opacity-85 transition-opacity">Claim Bonus</button>`;
+          } else if (isNext) {
+            actionHtml = `<span class="font-mono text-[11px] text-ink dark:text-white">${realCount} / ${t.req}</span>`;
+          } else {
+            actionHtml = '<span class="font-mono text-[11px] text-muted dark:text-neutral-500">Locked</span>';
+          }
+
+          return `
+            <div class="rounded-2xl border p-4 flex flex-col justify-between gap-3 transition-all ${cardCls}">
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-[10px] uppercase text-muted dark:text-neutral-400">Tier ${t.tier}</span>
+                <span class="px-2 py-0.5 rounded-full bg-bento dark:bg-obsidian-card border border-hairline dark:border-obsidian-border font-mono text-[11px] font-semibold text-ink dark:text-white tabular-nums">${t.req.toLocaleString()} Refs</span>
+              </div>
+
+              <div class="font-mono text-2xl font-bold text-ink dark:text-white tabular-nums">$${t.bonus.toLocaleString()}</div>
+
+              <div class="pt-2.5 border-t border-hairline dark:border-obsidian-border flex items-center justify-between">
+                <span class="text-[11px] text-muted dark:text-neutral-400">Real Users</span>
+                ${actionHtml}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        grid.querySelectorAll('.claim-tier-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const tierNum = Number(btn.dataset.claimTier);
+            const tierObj = referralTiers.find(t => t.tier === tierNum);
+            if (tierObj && !tierObj.claimed) {
+              tierObj.claimed = true;
+              state.balance += tierObj.bonus;
+              syncBalances();
+              renderReferralView();
+              showToast(`Claimed Tier ${tierObj.tier} Bonus: +$${tierObj.bonus.toLocaleString()} added to Wallet.`, 'success');
+            }
+          });
+        });
+
+        // Referred Users Table
+        const tbody = document.getElementById('invited-users-tbody');
+        const rows = state.invitedUsers.filter(u => {
+          if (state.refFilter === 'qualified') return u.qualified;
+          if (state.refFilter === 'pending') return !u.qualified;
+          return true;
+        });
+
+        if (!rows.length) {
+          tbody.innerHTML = '<tr><td colspan="5" class="py-10 text-center text-xs text-muted">No referred users in this view.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = rows.map(u => {
+          const badge = u.qualified
+            ? '<span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-mono text-[11px] font-medium">✓ Real User (Kept)</span>'
+            : '<span class="px-2.5 py-1 rounded-full bg-orange-500/10 text-orange-700 dark:text-orange-400 font-mono text-[11px] font-medium">Pending (At risk on reset)</span>';
+
+          return `
+            <tr class="hover:bg-bento/60 dark:hover:bg-obsidian/60 transition-colors">
+              <td class="py-3.5 px-5 font-mono font-medium text-ink dark:text-white">${u.wallet}</td>
+              <td class="py-3.5 px-5 text-xs text-muted dark:text-neutral-400">${u.joined}</td>
+              <td class="py-3.5 px-5 font-mono text-xs tabular-nums ${u.volume >= 5 ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-muted dark:text-neutral-400'}">$${u.volume} / $5</td>
+              <td class="py-3.5 px-5 font-mono text-xs tabular-nums ${u.positions >= 3 ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-muted dark:text-neutral-400'}">${u.positions} / 3</td>
+              <td class="py-3.5 px-5 text-right">${badge}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      document.querySelectorAll('.ref-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.refFilter = btn.dataset.refFilter;
+          document.querySelectorAll('.ref-filter-btn').forEach(b => {
+            b.className = b === btn
+              ? 'ref-filter-btn px-3.5 py-1 rounded-full text-xs font-medium bg-ink dark:bg-white text-white dark:text-ink transition-all'
+              : 'ref-filter-btn px-3.5 py-1 rounded-full text-xs font-medium text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white transition-all';
+          });
+          renderReferralView();
+        });
+      });
+
+      document.getElementById('sim-invite-btn').addEventListener('click', () => {
+        const randHex = Math.floor(Math.random() * 0xffff).toString(16).padStart(4, '0');
+        const isReal = Math.random() > 0.35;
+        state.invitedUsers.unshift({
+          wallet: `0x${randHex.slice(0, 3)}...${randHex}a`,
+          joined: 'Just now',
+          volume: isReal ? Math.floor(8 + Math.random() * 60) : Math.floor(Math.random() * 4),
+          positions: isReal ? Math.floor(3 + Math.random() * 9) : Math.floor(Math.random() * 2),
+          qualified: isReal
+        });
+        renderReferralView();
+        showToast(isReal
+          ? 'New Qualified Real User joined and locked permanently.'
+          : 'New Pending invite joined (at risk on 10-day reset).', isReal ? 'success' : 'info');
+      });
+
+      document.getElementById('test-reset-audit-btn').addEventListener('click', () => {
+        const removed = state.invitedUsers.filter(u => !u.qualified).length;
+        const kept = state.invitedUsers.filter(u => u.qualified).length;
+        state.invitedUsers = state.invitedUsers.filter(u => u.qualified);
+        state.cycleSecsLeft = 10 * 86400;
+        renderReferralView();
+        showToast(`10-Day Audit complete: Pruned ${removed} unverified pending refs, kept ${kept} Real Users permanently.`, 'success');
+      });
+
+      /* ======================================================================
+         11. VIEW 4: LEADERBOARD
+      ====================================================================== */
+      const topTraders = [
+        { rank: 1, wallet: '0x99F...2a10', winRate: '78.4%', volume: '$18,420.00', biggest: 'x24.50', pnl: '+$14,820.40' },
+        { rank: 2, wallet: '0x39C...77B4', winRate: '72.1%', volume: '$11,290.50', biggest: 'x18.85', pnl: '+$9,412.15' },
+        { rank: 3, wallet: '0x84A...21F9', winRate: '69.8%', volume: '$8,940.00', biggest: 'x15.20', pnl: '+$7,105.80' },
+        { rank: 4, wallet: '0x12D...6e01', winRate: '66.0%', volume: '$6,720.20', biggest: 'x12.40', pnl: '+$5,340.00' },
+        { rank: 5, wallet: '0x01b...4c09a (You)', winRate: '64.2%', volume: '$578.70', biggest: 'x18.85', pnl: '+$18.42' }
+      ];
+      const topReferrers = [
+        { rank: 1, wallet: '0xA10...9f88', realRefs: '1,042', tier: 'Tier 11 ($10,000)', totalBonus: '$22,587.00' },
+        { rank: 2, wallet: '0x77E...3c12', realRefs: '618', tier: 'Tier 9 ($3,500)', totalBonus: '$7,087.00' },
+        { rank: 3, wallet: '0x52B...8d44', realRefs: '412', tier: 'Tier 8 ($2,000)', totalBonus: '$3,587.00' },
+        { rank: 4, wallet: '0x19C...0a71', realRefs: '115', tier: 'Tier 6 ($400)', totalBonus: '$687.00' },
+        { rank: 5, wallet: '0x01b...4c09a (You)', realRefs: '6', tier: 'Tier 2 ($10)', totalBonus: '$12.00' }
+      ];
+
+      function renderLeaderboard() {
+        const thead = document.getElementById('lb-thead');
+        const tbody = document.getElementById('lb-tbody');
+        if (state.lbTab === 'traders') {
+          thead.innerHTML = `<tr class="border-b border-hairline dark:border-obsidian-border bg-bento/60 dark:bg-obsidian text-[11px] font-mono uppercase text-muted dark:text-neutral-400">
+            <th class="py-3.5 px-5">Rank</th><th class="py-3.5 px-5">Trader</th><th class="py-3.5 px-5">Win Rate</th><th class="py-3.5 px-5">Volume</th><th class="py-3.5 px-5">Biggest Multiplier</th><th class="py-3.5 px-5 text-right">Total P&amp;L</th>
+          </tr>`;
+          tbody.innerHTML = topTraders.map(r => `
+            <tr class="hover:bg-bento/60 dark:hover:bg-obsidian/60 transition-colors">
+              <td class="py-4 px-5 font-mono font-semibold text-ink dark:text-white">#${r.rank}</td>
+              <td class="py-4 px-5 font-mono font-medium text-ink dark:text-white">${r.wallet}</td>
+              <td class="py-4 px-5 font-mono text-muted dark:text-neutral-400 tabular-nums">${r.winRate}</td>
+              <td class="py-4 px-5 font-mono text-ink dark:text-neutral-200 tabular-nums">${r.volume}</td>
+              <td class="py-4 px-5 font-mono font-semibold text-ink dark:text-white tabular-nums">${r.biggest}</td>
+              <td class="py-4 px-5 text-right font-mono font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">${r.pnl}</td>
+            </tr>
+          `).join('');
+        } else {
+          thead.innerHTML = `<tr class="border-b border-hairline dark:border-obsidian-border bg-bento/60 dark:bg-obsidian text-[11px] font-mono uppercase text-muted dark:text-neutral-400">
+            <th class="py-3.5 px-5">Rank</th><th class="py-3.5 px-5">Referrer</th><th class="py-3.5 px-5">Qualified Real Users</th><th class="py-3.5 px-5">Highest Tier</th><th class="py-3.5 px-5 text-right">Total Bonus</th>
+          </tr>`;
+          tbody.innerHTML = topReferrers.map(r => `
+            <tr class="hover:bg-bento/60 dark:hover:bg-obsidian/60 transition-colors">
+              <td class="py-4 px-5 font-mono font-semibold text-ink dark:text-white">#${r.rank}</td>
+              <td class="py-4 px-5 font-mono font-medium text-ink dark:text-white">${r.wallet}</td>
+              <td class="py-4 px-5 font-mono font-semibold text-ink dark:text-white tabular-nums">${r.realRefs}</td>
+              <td class="py-4 px-5"><span class="px-2.5 py-0.5 rounded-full bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border font-mono text-[11px] text-ink dark:text-neutral-200">${r.tier}</span></td>
+              <td class="py-4 px-5 text-right font-mono font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">${r.totalBonus}</td>
+            </tr>
+          `).join('');
+        }
+      }
+
+      document.getElementById('lb-tab-traders').addEventListener('click', (e) => {
+        state.lbTab = 'traders';
+        e.target.className = 'px-4 py-1.5 rounded-full text-xs font-medium bg-ink dark:bg-white text-white dark:text-ink transition-all';
+        document.getElementById('lb-tab-referrers').className = 'px-4 py-1.5 rounded-full text-xs font-medium text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white transition-all';
+        renderLeaderboard();
+      });
+      document.getElementById('lb-tab-referrers').addEventListener('click', (e) => {
+        state.lbTab = 'referrers';
+        e.target.className = 'px-4 py-1.5 rounded-full text-xs font-medium bg-ink dark:bg-white text-white dark:text-ink transition-all';
+        document.getElementById('lb-tab-traders').className = 'px-4 py-1.5 rounded-full text-xs font-medium text-muted dark:text-neutral-400 hover:text-ink dark:hover:text-white transition-all';
+        renderLeaderboard();
+      });
+
+      /* ======================================================================
+         12. LIVE FEED STREAM, TIMERS & KEYBOARD SHORTCUTS
+      ====================================================================== */
+      function pushLiveTradeItem(wallet, market, sideLabel, amount, isUntil) {
+        const html = `
+          <div class="p-3.5 rounded-2xl bg-bento dark:bg-obsidian border border-hairline dark:border-obsidian-border flex items-center justify-between gap-2 text-xs">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-semibold text-ink dark:text-white">${wallet}</span>
+                <span class="px-2 py-0.5 rounded-full font-mono text-[10px] font-medium ${isUntil ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' : 'bg-orange-500/10 text-orange-700 dark:text-orange-400'}">${sideLabel}</span>
+              </div>
+              <div class="text-[11px] text-muted dark:text-neutral-400 truncate mt-0.5">${market}</div>
+            </div>
+            <div class="text-right shrink-0">
+              <div class="font-mono font-semibold text-ink dark:text-white tabular-nums">${amount}</div>
+              <div class="text-[10px] font-mono text-muted">just now</div>
+            </div>
+          </div>
+        `;
+        const feedList = document.getElementById('live-feed-list');
+        feedList.insertAdjacentHTML('afterbegin', html);
+        if (feedList.children.length > 20) feedList.lastElementChild.remove();
+
+        const termList = document.getElementById('term-trades-list');
+        termList.insertAdjacentHTML('afterbegin', html);
+        if (termList.children.length > 8) termList.lastElementChild.remove();
+      }
+
+      const sampleWallets = ['0x84A...21F', '0x39C...77B', '0x91D...04E', '0x55F...8a12', '0x22C...9b01'];
+      const sampleSides = ['UNTIL', 'WHEN 10m', 'WHEN 30m', 'WHEN 60m'];
+      for (let i = 0; i < 6; i++) {
+        const m = marketsData[i % 9];
+        const s = sampleSides[i % sampleSides.length];
+        pushLiveTradeItem(sampleWallets[i % sampleWallets.length], m.title, s, `$${(2 + i * 3.5).toFixed(2)}`, s === 'UNTIL');
+      }
+
+      setInterval(() => {
+        const m = marketsData[Math.floor(Math.random() * 9)];
+        const w = sampleWallets[Math.floor(Math.random() * sampleWallets.length)];
+        const s = sampleSides[Math.floor(Math.random() * sampleSides.length)];
+        const amt = (1 + Math.random() * 19).toFixed(2);
+        pushLiveTradeItem(w, m.title, s, `$${amt}`, s === 'UNTIL');
+      }, 4500);
+
+      // 150ms Yield & Earnings Tick
+      setInterval(() => {
+        if (!state.termTriggered) {
+          state.termYield += 0.00028;
+          chartPoints.push(state.termYield);
+          if (chartPoints.length > 120) chartPoints.shift();
+
+          document.getElementById('term-yield-big').innerHTML =
+            `x${state.termYield.toFixed(2)}<span class="text-base text-emerald-600 dark:text-emerald-400 font-semibold">/h</span>`;
+          if (state.tradeSide === 'until') {
+            document.getElementById('side-until-yield').textContent = `x${state.termYield.toFixed(2)}/h`;
+            document.getElementById('summary-rate').textContent = `x${state.termYield.toFixed(2)}/h`;
+          }
+        }
+        state.livePositions.forEach(p => {
+          if (p.side === 'Survivor') p.currentVal += 0.000045 * p.stake;
+        });
+        renderLivePositionPanel();
+      }, 150);
+
+      // 1-Second Countdown Tick (10-Day Referral Reset + WHEN Live Positions)
+      setInterval(() => {
+        if (state.cycleSecsLeft > 0) state.cycleSecsLeft -= 1;
+        const d = Math.floor(state.cycleSecsLeft / 86400);
+        const h = Math.floor((state.cycleSecsLeft % 86400) / 3600);
+        const m = Math.floor((state.cycleSecsLeft % 3600) / 60);
+        const s = state.cycleSecsLeft % 60;
+        document.getElementById('cd-days').textContent = String(d).padStart(2, '0');
+        document.getElementById('cd-hours').textContent = String(h).padStart(2, '0');
+        document.getElementById('cd-mins').textContent = String(m).padStart(2, '0');
+        document.getElementById('cd-secs').textContent = String(s).padStart(2, '0');
+
+        state.livePositions.forEach(p => {
+          if (p.side === 'Detonator' && p.whenSecsLeft > 0) p.whenSecsLeft -= 1;
+        });
+      }, 1000);
+
+      // Global Keyboard Shortcuts (⌘K / / -> Search, 1-4 -> Presets, Space -> Side)
+      document.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+          e.preventDefault();
+          focusSearch();
+          return;
+        }
+        if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+        if (e.key === '/') {
+          e.preventDefault();
+          focusSearch();
+          return;
+        }
+        if (state.view === 'terminal') {
+          const map = { '1': 1, '2': 2, '3': 5, '4': 10 };
+          if (map[e.key]) {
+            amtInput.value = map[e.key];
+            renderTradeDock();
+          } else if (e.code === 'Space') {
+            e.preventDefault();
+            state.tradeSide = state.tradeSide === 'until' ? 'when' : 'until';
+            renderTradeDock();
+          }
+        }
+      });
+
+      /* ======================================================================
+         13. INITIALIZE
+      ====================================================================== */
+      applyTheme(false); // Default ElevenLabs Light Mode
+      syncBalances();
+      renderNotifications();
+      renderOrbStage();
+      renderCategoryTabs();
+      renderMarketsGrid();
+      renderTradeDock();
+      renderLivePositionPanel();
+      renderHistoryTable();
+      renderReferralView();
+      seedChart(1.59);
+    })();
+  </script>
+</body>
+</html>
